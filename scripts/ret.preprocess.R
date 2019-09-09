@@ -168,7 +168,7 @@ setwd("../")
 ifelse(!dir.exists(file.path(getwd(), "/processed/")), dir.create(file.path(getwd())), FALSE)
 
 # Write the full output
-setwd("processed/")
+setwd("../processed/")
 readr::write_csv(ret.dat, "ret_processed.csv")
 
 # Done
