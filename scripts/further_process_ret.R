@@ -6,9 +6,9 @@
 #
 ## Project: Eye tracking during prenuclear pitch accent comprehension
 #
-##        DESCRIPTION bla
+##        DESCRIPTION
 #
-## Version: 8/25/2019
+## Version: 9/9/2019
 
 
 #############
@@ -41,17 +41,19 @@ data <- xdata %>%
          Comp_subj, Comp_subj_pic, Comp_subj_pos,
          Condition, fixDur, fixationSum,
          First_obj, First_subj, First_pic, First_sound,
-         Target_obj, Target_subj, Target_pos, 
-         topROI, fixDur, roiLoc,
+         Target_obj, Target_subj, Target_pos, sttime, entime,
+         topROI, fixDur, roi_1, roi_2, roi_3, roi_4,
          prenuclear_onset, referent_onset, adverb_onset,
          roi_1_sum, roi_2_sum, roi_3_sum, roi_4_sum
          ) %>% 
-  filter(Condition %in% c("CG", "GG", "GC")) %>% 
-  drop_na(roiLoc)
+  filter(Condition %in% c("CG", "GG", "GC"))
 
-
-
-xdat
+# Encode ROI location for intuitive matching
+data$roiLoc = NA
+data$roiLoc[data$roi_1 == 1] <- "TL"
+data$roiLoc[data$roi_2 == 1] <- "TR"
+data$roiLoc[data$roi_3 == 1] <- "BL"
+data$roiLoc[data$roi_4 == 1] <- "BR"
 
 # define type of fixations
 data$fixTarget <- ifelse(data$Target_pos == "tl_pic" & data$roiLoc == "TL", 1, 
@@ -105,10 +107,25 @@ for (i in unique(data$eyetrial)) {
   }
 }
 
-# Now categorize fications according to time windows
+# Now categorize fixations according to time windows
+data$window <- NA
 data$window <- ifelse(data$fixationEnd <= data$prenuclear_onset, "early",
-               ifelse(data$prenuclear_onset <= data$fixationEnd & data$fixationEnd <= data$referent_onset, "prenuclear",
-               ifelse(data$referent_onset <= data$fixationEnd & data$fixationEnd <= data$adverb_onset, "nuclear", "adverb")))
+                      ifelse(data$prenuclear_onset <= data$fixationEnd & data$fixationEnd <= data$referent_onset, "prenuclear",
+                             ifelse(data$referent_onset <= data$fixationEnd & data$fixationEnd <= data$adverb_onset, "nuclear", "adverb")))
+
+
+## Total by trial by window by target
+
+# Loop all gazes
+for (ostrial in unique(data$eyetrial)){
+  
+  # Go window by window and sum the fixation durations for each, matching by ostrial ()
+  data$dur_early[data$eyetrial == ostrial] = sum(data$fixDur[data$eyetrial[data$window == "early"] == ostrial])
+  data$dur_prenuclear[data$eyetrial == ostrial] = sum(data$fixDur[data$eyetrial[data$window == "prenuclear"] == ostrial])
+  data$dur_nuclear[data$eyetrial == ostrial] = sum(data$fixDur[data$eyetrial[data$window == "nuclear"] == ostrial])
+  data$dur_adverb[data$eyetrial == ostrial] = sum(data$fixDur[data$eyetrial[data$window == "adverb"] == ostrial])
+}
+
 
 # To do: Now downsample and assign fixation durations only within windows
 
