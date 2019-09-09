@@ -11,7 +11,7 @@
 ##          useful columns to the dataframe. It outputs the resulting dataframe as ret_dat.csv into the
 ##          directory <your wd>/processed/. If the directory doesn't exist this creates it.
 #
-## Version: 7/25/2019
+## Version: 9/9/2019
 #
 ## Notes
 ##          * This requires installation of the SRR EDF API, avialable free for download
@@ -22,8 +22,7 @@
 #############
 
 ## Install itrackR from Github if it's missing
-new.packages <- list.of.packages[!("itrackR" %in% installed.packages()[,"Package"])]
-if(length(new.packages)) devtools::install_github('jashubbard/itrackR', build_vignettes = TRUE)
+# devtools::install_github('jashubbard/itrackR', build_vignettes = TRUE)
 
 ## Load main package (everything else called inline)
 library(itrackR)
@@ -35,13 +34,13 @@ library(rstudioapi)
 # Getting the path of your current open file
 datapath = rstudioapi::getActiveDocumentContext()$path 
 setwd(dirname(datapath))
-setwd("../raw_edf/")
 
 # Set datapath to working directory
-datapath <- paste0(getwd(), "/")
+datapath <- paste0(getwd(), "/raw_edf/")
 
 # Read the ET data all at once
-ret = itrackr(path = datapath, pattern = '*.edf')
+setwd("../raw_edf/")
+ret = itrackr(path = paste0(getwd(),"/"), pattern = '*.edf')
 
 # Read the beh data all at once
 setwd("../raw_beh/")
@@ -66,10 +65,10 @@ ret <- makeROIs(ret, matrix(c(750,750), nrow = 1), shapes = 'circle', radius = 2
 ret <- makeROIs(ret, matrix(c(150,750), nrow = 1), shapes = 'circle', radius = 200, names = 4, append = T)
 
 ## Check our work by plotting the ROIs with all fixations for all trials
-plot(ret, zoom = TRUE, oneplot = TRUE)
+plot(ret, zoom = FALSE, oneplot = TRUE, crosshairs = FALSE, summarize = 100)
  
 ## Calculate fixation hits by ROI
-ret <- calcHits(ret)  # doesn't work
+ret <- calcHits(ret)
 
 ####################################
 ### Merge ET and behavioral data ###
@@ -78,14 +77,23 @@ ret <- calcHits(ret)  # doesn't work
 ### Index the files by trial nuber (accounting for 0 index vs. 1 index) and participant ID
 
 ## Adjust the indexing
-beh$count_pygaze_drift_corr <- beh$count_pygaze_drift_corr + 1
+# beh$count_pygaze_drift_corr <- beh$count_pygaze_drift_corr + 1
 
 ## Check our work
-range(beh$count_pygaze_drift_corr)
-range(ret$fixations$eyetrial)
+#range(beh$count_pygaze_drift_corr)
+#range(ret$fixations$eyetrial)
+
 
 ## Merge beh and ret in ret.dat
 ret.dat <- merge.data.frame(ret$fixations, beh, by.x  =  c("eyetrial","ID"), by.y  =  c("count_pygaze_drift_corr","subject_nr"), all  =  TRUE)
+
+## Flag large ET errors
+# Find the rows with large ET errors
+lgerror <- grep("!MODE", ret$messages$message)
+
+# Setup column to flag errorful rows and flag erroes with '1'
+ret.dat$lgerror <- 0
+ret.dat$lgerror[ret.dat$key[lgerror]] <- 1
 
 ########################################
 ### Encrich the data with new fields ###
@@ -93,13 +101,6 @@ ret.dat <- merge.data.frame(ret$fixations, beh, by.x  =  c("eyetrial","ID"), by.
 
 ## How long was the fixation?
 ret.dat$fixDur <- ret.dat$entime - ret.dat$sttime
-
-## Code each fixation hit for whether it's in a ROI (might be useful)
-ret.dat$roiLoc  =  "NA"
-ret.dat$roiLoc  =  ifelse(ret.dat$roi_1  ==  1, "TL", ret.dat$roiLoc)
-ret.dat$roiLoc  =  ifelse(ret.dat$roi_2  ==  1, "TR", ret.dat$roiLoc)
-ret.dat$roiLoc  =  ifelse(ret.dat$roi_3  ==  1, "BR", ret.dat$roiLoc)
-ret.dat$roiLoc  =  ifelse(ret.dat$roi_4  ==  1, "BL", ret.dat$roiLoc)
 
 ## Write the messages from the eye tracker to the data frame
 for (key in 1:length(ret$messages$key)){
@@ -169,7 +170,5 @@ ifelse(!dir.exists(file.path(getwd(), "/processed/")), dir.create(file.path(getw
 # Write the full output
 setwd("processed/")
 readr::write_csv(ret.dat, "ret_processed.csv")
-readr::write_csv(ret.dat, "beh_processed.csv")
-
 
 # Done
