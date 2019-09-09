@@ -6,7 +6,7 @@
 #
 ## Project: Eye tracking during prenuclear pitch accent comprehension
 #
-##        DESCRIPTION
+##        DESCRIPTION bla
 #
 ## Version: 8/25/2019
 
