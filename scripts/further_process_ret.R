@@ -24,15 +24,14 @@ datapath = rstudioapi::getActiveDocumentContext()$path
 setwd(dirname(datapath))
 setwd("../processed/")
 
-# load in data
+# Load processed data (OpenSesame (+ Mouse Tracking) + Eye Tracking)
 xdata <- read_csv("ret_processed.csv")
 
-# load in acoustic landmarks
+# Load acoustic landmarks
 setwd("../data/")
 landmarks <- read_csv("acoustic_landmarks.csv")
 
-# join
-
+# Join the landmarks and data
 xdata <- full_join(xdata, landmarks)
 
 # reduce data and look only at test trials
@@ -50,6 +49,9 @@ data <- xdata %>%
   filter(Condition %in% c("CG", "GG", "GC")) %>% 
   drop_na(roiLoc)
 
+
+
+xdat
 
 # define type of fixations
 data$fixTarget <- ifelse(data$Target_pos == "tl_pic" & data$roiLoc == "TL", 1, 
