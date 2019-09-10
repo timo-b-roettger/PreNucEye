@@ -52,6 +52,13 @@ xagg <-
             mean_ypos = mean(ypos, na.rm = T),
             mean_time = mean(timestamps, na.rm = T))
 
+xagg_r_subjects <-
+  d2 %>%
+  group_by(steps, Condition, subject_nr) %>%
+  summarise(mean_xpos = mean(xpos_r, na.rm = T),
+            mean_ypos = mean(ypos_r, na.rm = T),
+            mean_time = mean(timestamps, na.rm = T))
+
 xagg_r <-
   d2 %>%
   group_by(steps, Condition) %>%
@@ -137,6 +144,7 @@ ggplot(xagg_r, aes(x = mean_xpos, y = mean_ypos, colour = Condition, fill = Cond
   scale_fill_manual("Condition",
                     guide = guide_legend(title = "Condition"),
                     values = c(lexical.col, object.col, verb.col)) +
+  #facet_wrap(~ subject_nr) +
   #scale_x_continuous(breaks = (c(-1,-0.5,0,0.5,1)), limits = c(-1.2,1.2)) + 
   #scale_y_continuous(breaks = (c(-1,-0.5,0,0.5,1)), limits = c(-0.1,1.2)) + 
   labs(title = "Mean trajectories",
@@ -153,7 +161,7 @@ ggplot(xagg_r, aes(x = mean_xpos, y = mean_ypos, colour = Condition, fill = Cond
 ############################
 
 #RF1_space_both <-
-ggplot(xagg, aes(x = mean_time, y = mean_xpos, colour = Condition, fill = Condition)) +
+ggplot(xagg_r, aes(x = mean_time, y = mean_xpos, colour = Condition, fill = Condition)) +
   # geom_path(data = xagg_subjects, 
   #           aes(x = -mean_xpos, y = mean_ypos, colour = Focus, group = interaction(subject_nr, Focus)), 
   #           alpha = 0.3, inherit.aes = FALSE) +
@@ -167,7 +175,7 @@ ggplot(xagg, aes(x = mean_time, y = mean_xpos, colour = Condition, fill = Condit
                     values = c(lexical.col, object.col, verb.col)) +
   #scale_x_continuous(breaks = (c(-1,-0.5,0,0.5,1)), limits = c(-1.2,1.2)) + 
   #scale_y_continuous(breaks = (c(-1,-0.5,0,0.5,1)), limits = c(-0.1,1.2)) + 
-  facet_wrap( ~ Target_pos, ncol= 2, scale = "free") +
+  #facet_wrap( ~ Target_pos, ncol= 2, scale = "free") +
   labs(title = "Mean horizontal cursor position",
        subtitle = "semi-transparent lines are subject averages\n",
        x = "\ntime in ms", 

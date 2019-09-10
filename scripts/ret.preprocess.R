@@ -11,7 +11,7 @@
 ##          useful columns to the dataframe. It outputs the resulting dataframe as ret_dat.csv into the
 ##          directory <your wd>/processed/. If the directory doesn't exist this creates it.
 #
-## Version: 9/9/2019
+## Version: 9/10/2019
 #
 ## Notes
 ##          * This requires installation of the SRR EDF API, avialable free for download
@@ -30,6 +30,7 @@ library(dplyr)
 library(readr)
 library(readbulk)
 library(rstudioapi)
+library(data.table)
 
 # Getting the path of your current open file
 datapath = rstudioapi::getActiveDocumentContext()$path 
@@ -43,8 +44,8 @@ setwd("../raw_edf/")
 ret = itrackr(path = paste0(getwd(),"/"), pattern = '*.edf')
 
 # Read the beh data all at once
-setwd("../raw_beh/")
-beh = lapply(paste0(getwd(), "/", list.files(paste0(getwd(), "/"), pattern = "*.csv")), readr::read_csv) %>% dplyr::bind_rows()
+setwd("../raw_OSfiles/")
+beh = rbindlist(lapply(list.files(pattern="*.csv"), fread), fill = TRUE)
 
 ##################################
 ### Regions of Interest (ROIs) ###
@@ -77,7 +78,7 @@ ret <- calcHits(ret)
 ### Index the files by trial nuber (accounting for 0 index vs. 1 index) and participant ID
 
 ## Adjust the indexing
-# beh$count_pygaze_drift_corr <- beh$count_pygaze_drift_corr + 1
+beh$count_pygaze_drift_corr <- beh$count_pygaze_drift_corr + 1
 
 ## Check our work
 range(ret$fixations$eyetrial)
@@ -114,7 +115,11 @@ ret.dat$roiLoc[ret.dat$roi_4 == 1] <- "BR"
 
 # If no /processed folder, create one
 setwd("../")
-ifelse(!dir.exists(file.path(getwd(), "/processed/")), dir.create(file.path(getwd())), FALSE)
+ifelse(!dir.exists(file.path(getwd(), "../processed/")), dir.create(file.path(getwd())), FALSE)
+
+# Write the beh output
+setwd("../raw_beh/")
+readr::write_csv(ret.dat, "ret_beh.csv")
 
 # Write the full output
 setwd("../processed/")

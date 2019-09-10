@@ -8,7 +8,7 @@
 #
 ##        DESCRIPTION
 #
-## Version: 9/9/2019
+## Version: 9/10/2019
 
 
 #############
@@ -34,26 +34,20 @@ landmarks <- read_csv("acoustic_landmarks.csv")
 # Join the landmarks and data
 xdata <- full_join(xdata, landmarks)
 
+# Check our work
+table(xdata$Condition, xdata$ID)
+
 # reduce data and look only at test trials
 data <- xdata %>% 
   select(eyetrial, ID, BL_Pic, BR_Pic, TL_Pic, TR_Pic, 
          Comp_obj, Comp_obj_pic, Comp_obj_pos, 
          Comp_subj, Comp_subj_pic, Comp_subj_pos,
-         Condition, fixDur, fixationSum,
-         First_obj, First_subj, First_pic, First_sound,
+         Condition, fixDur,First_obj, First_subj, First_pic, First_sound,
          Target_obj, Target_subj, Target_pos, sttime, entime,
-         topROI, fixDur, roi_1, roi_2, roi_3, roi_4,
-         prenuclear_onset, referent_onset, adverb_onset,
-         roi_1_sum, roi_2_sum, roi_3_sum, roi_4_sum
+         fixDur, roi_1, roi_2, roi_3, roi_4,
+         prenuclear_onset, referent_onset, adverb_onset, roiLoc
          ) %>% 
   filter(Condition %in% c("CG", "GG", "GC"))
-
-# Encode ROI location for intuitive matching
-data$roiLoc = NA
-data$roiLoc[data$roi_1 == 1] <- "TL"
-data$roiLoc[data$roi_2 == 1] <- "TR"
-data$roiLoc[data$roi_3 == 1] <- "BL"
-data$roiLoc[data$roi_4 == 1] <- "BR"
 
 # define type of fixations
 data$fixTarget <- ifelse(data$Target_pos == "tl_pic" & data$roiLoc == "TL", 1, 
@@ -81,31 +75,40 @@ data$fixDurSubjComp <- ifelse(data$fixSubjComp == 1, data$fixDur, 0)
 data$fixDurObjComp <- ifelse(data$fixObjComp == 1, data$fixDur, 0)
 data$fixDurDist <- ifelse(data$fixDist == 1, data$fixDur, 0)
 
-data <- data %>% 
-  group_by(eyetrial) %>% 
-  mutate(fixDurTarget.s = sum(fixDurTarget, na.rm = T)/fixationSum,
-         fixDurObjComp.s = sum(fixDurObjComp, na.rm = T)/fixationSum,
-         fixDurSubjComp.s = sum(fixDurSubjComp, na.rm = T)/fixationSum,
-         fixDurDist.s = sum(fixDurDist, na.rm = T)/fixationSum) %>% 
-  ungroup()
+
+## This groups by eyetrial, which is not unique across particpants *DT
+
+# data <- data %>% 
+#   group_by(eyetrial) %>% 
+#   mutate(fixDurTarget.s = sum(fixDurTarget, na.rm = T)/fixationSum,
+#          fixDurObjComp.s = sum(fixDurObjComp, na.rm = T)/fixationSum,
+#          fixDurSubjComp.s = sum(fixDurSubjComp, na.rm = T)/fixationSum,
+#          fixDurDist.s = sum(fixDurDist, na.rm = T)/fixationSum) %>% 
+#   ungroup()
 
 ## Loop the vectors to accumulate end of fixation
 data$fixationEnd <- 0
 
-for (i in unique(data$eyetrial)) {
-  for (j in 1:nrow(data[data$eyetrial == i,])) {
-    #print(paste0(i,"&",j))
-    if (j == 1) {
-      data[data$eyetrial == i,]$fixationEnd[j] = 
-        data[data$eyetrial == i,]$fixationEnd[j] + data[data$eyetrial == i,]$fixDur[j]
-    } 
-    else {
-      data[data$eyetrial == i,]$fixationEnd[j] = 
-        data[data$eyetrial == i,]$fixDur[j] + data[data$eyetrial == i,]$fixationEnd[j - 1]
-      #print(data$fixationEnd[j])
+# Looping participants, then eyetrials
+# Needs to be validated *DT
+
+for (p in unique(data$ID[data$ID == p])){
+  for (i in unique(data$eyetrial[data$ID == p])) {
+    for (j in 1:nrow(data[data$eyetrial[data$ID == p] == i,])) {
+      #print(paste0(i,"&",j))
+      if (j == 1) {
+        data[data$eyetrial[data$ID == p] == i,]$fixationEnd[j] = 
+          data[data$eyetrial[data$ID == p] == i,]$fixationEnd[j] + data[data$eyetrial[data$ID == p] == i,]$fixDur[j]
+      } 
+      else {
+        data[data$eyetrial[data$ID == p] == i,]$fixationEnd[j] = 
+          data[data$eyetrial[data$ID == p] == i,]$fixDur[j] + data[data$eyetrial[data$ID == p] == i,]$fixationEnd[j - 1]
+        #print(data$fixationEnd[j])
+      }
     }
   }
 }
+
 
 # Now categorize fixations according to time windows
 data$window <- NA
@@ -115,6 +118,9 @@ data$window <- ifelse(data$fixationEnd <= data$prenuclear_onset, "early",
 
 
 ## Total by trial by window by target
+
+# Initialize cols
+data$dur_early <- data$dur_prenuclear <- data$dur_nuclear <- data$dur_adverb <- 0
 
 # Loop all gazes
 for (ostrial in unique(data$eyetrial)){

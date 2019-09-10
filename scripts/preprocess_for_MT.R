@@ -65,24 +65,6 @@ mtdata_2nd <- mt_import_mousetrap(
   verbose = TRUE
 )
 
-# There is a problem "in case all positions in a trial are the same". 
-# Then, "mt_align_start_end does not work properly, [and results] in every positiion to be NaN. 
-# This subsequently leads to a problem in mt_time_normalize." (Kieslich)
-
-# So instead of excluding all ultra-short trials, 
-# we can just find the ones consisting of identical values:
-
-# Calculate variance of positions for each trial
-mtdata_2nd$data$pos_var <-
-  apply(mtdata_2nd$trajectories[, , "xpos"], 1, var, na.rm = TRUE) + 
-  apply(mtdata_2nd$trajectories[, , "ypos"], 1, var, na.rm = TRUE)
-
-# Check if there are trials with 0 variance (i.e., all positions are identical)
-table(mtdata_2nd$data$pos_var == 0)
-
-# There are indeed two trials with no position variance in there.
-mtdata_2nd <- mt_subset(mtdata_2nd, pos_var > 0)
-
 # Bottoms up
 mtdata_2nd <- mt_remap_symmetric(
   mtdata_2nd,
@@ -102,17 +84,6 @@ mtdata_2nd <- mt_align_start(
   start = c(0, 0),
   verbose = FALSE
 )
-
-# Start-end align
-# mtdata_2nd <- mt_align_start_end(
-#   mtdata_2nd,
-#   use = "trajectories",
-#   save_as = "sn_trajectories",
-#   dimensions = c("xpos", "ypos"),
-#   start = c(0, 0),
-#   end = NULL,
-#   verbose = FALSE
-#)
 
 ## Subset Correct and Incorrect responses ####
 mtdata_2nd$data$responded_correct <- ifelse(mtdata_2nd$data$response_mt_maintrack_2nd_02 == mtdata_2nd$data$Target_pic, 1, 0) 
