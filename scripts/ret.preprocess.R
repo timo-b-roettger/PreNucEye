@@ -80,9 +80,8 @@ ret <- calcHits(ret)
 # beh$count_pygaze_drift_corr <- beh$count_pygaze_drift_corr + 1
 
 ## Check our work
-#range(beh$count_pygaze_drift_corr)
-#range(ret$fixations$eyetrial)
-
+range(ret$fixations$eyetrial)
+range(beh$count_pygaze_drift_corr)
 
 ## Merge beh and ret in ret.dat
 ret.dat <- merge.data.frame(ret$fixations, beh, by.x  =  c("eyetrial","ID"), by.y  =  c("count_pygaze_drift_corr","subject_nr"), all  =  TRUE)
@@ -102,62 +101,12 @@ ret.dat$lgerror[ret.dat$key[lgerror]] <- 1
 ## How long was the fixation?
 ret.dat$fixDur <- ret.dat$entime - ret.dat$sttime
 
-## Write the messages from the eye tracker to the data frame
-for (key in 1:length(ret$messages$key)){
-  
-  ## Get the message by key
-  et_mess <- ret$messages$message[ret$messages$key  ==  key]
-  
-  ## Write the message by key
-  ret.dat$et_mess[ret.dat$key  ==  key] <- et_mess
-}
-
-### Sum the fixations by eyetrial
-
-## Build a list with all of the eyetrials (written by tracker)
-eyetrials <- unique(ret.dat$eyetrial)
-
-## Loop the eyetrials to sum the ROI fixations
-for (eyetrial in eyetrials){
-  
-  # ROI 1 (TL)
-  theSum <- sum(ret.dat$roi_1[ret.dat$eyetrial  ==  eyetrial])
-  ret.dat$roi_1_sum[ret.dat$eyetrial  ==  eyetrial] <- theSum
-  
-  # ROI 2 (TR)
-  theSum <- sum(ret.dat$roi_2[ret.dat$eyetrial  ==  eyetrial])
-  ret.dat$roi_2_sum[ret.dat$eyetrial  ==  eyetrial] <- theSum
-  
-  # ROI 3 (BR)
-  theSum <- sum(ret.dat$roi_3[ret.dat$eyetrial  ==  eyetrial])
-  ret.dat$roi_3_sum[ret.dat$eyetrial  ==  eyetrial] <- theSum
-  
-  # ROI 4 (BL)
-  theSum <- sum(ret.dat$roi_4[ret.dat$eyetrial  ==  eyetrial])
-  ret.dat$roi_4_sum[ret.dat$eyetrial  ==  eyetrial] <- theSum
-  
-  # note the fixation sum
-  fixationSum <- sum(ret.dat$fixDur[ret.dat$eyetrial == eyetrial])
-  ret.dat$fixationSum[ret.dat$eyetrial  ==  eyetrial] <- fixationSum
-}
-
-### For each trial, which ROI had the most fixations?
-
-## Make a df with all of the sums
-ret.dat.sums <- data.frame(ret.dat$roi_1_sum, ret.dat$roi_2_sum, ret.dat$roi_3_sum, ret.dat$roi_4_sum)
-
-## Return the column with the most fixations. In the event of a tie, choose randomly which gets written
-ret.dat$topROI <- max.col(ret.dat.sums,ties.method = "random")
-
-## Let's backfeed these results to beh
-# Initialize the col
-beh$topROI <- NA
-
-## Loop beh and populate the new col by coordinating eye trial with drift_corr
-for (row in 1:nrow(beh)){
-  eyetrial <- beh$count_pygaze_drift_corr[row]
-  beh$topROI <- ret.dat$topROI[ret.dat$eyetrial  ==  eyetrial][1]
-}
+# Encode ROI location for intuitive matching later
+ret.dat$roiLoc = NA
+ret.dat$roiLoc[ret.dat$roi_1 == 1] <- "TL"
+ret.dat$roiLoc[ret.dat$roi_2 == 1] <- "TR"
+ret.dat$roiLoc[ret.dat$roi_3 == 1] <- "BL"
+ret.dat$roiLoc[ret.dat$roi_4 == 1] <- "BR"
 
 #######################################
 ### Write the output to /processed/ ###
