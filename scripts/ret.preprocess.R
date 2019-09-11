@@ -36,9 +36,6 @@ library(data.table)
 datapath = rstudioapi::getActiveDocumentContext()$path 
 setwd(dirname(datapath))
 
-# Set datapath to working directory
-datapath <- paste0(getwd(), "/raw_edf/")
-
 # Read the ET data all at once
 setwd("../raw_edf/")
 ret = itrackr(path = paste0(getwd(),"/"), pattern = '*.edf')
@@ -115,10 +112,10 @@ ret.dat$roiLoc[ret.dat$roi_4 == 1] <- "BR"
 
 # If no /processed folder, create one
 setwd("../")
-ifelse(!dir.exists(file.path(getwd(), "../processed/")), dir.create(file.path(getwd())), FALSE)
+#ifelse(!dir.exists(file.path(getwd(), "../processed/")), dir.create(file.path(getwd())), FALSE)
 
 # Write the beh output
-setwd("../raw_beh/")
+setwd("raw_beh/")
 readr::write_csv(ret.dat, "ret_beh.csv")
 
 # Write the full output

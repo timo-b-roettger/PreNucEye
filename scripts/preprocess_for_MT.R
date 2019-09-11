@@ -32,7 +32,9 @@ path <- getwd()
 
 # Read & preprocess ####
 raw_data <- readbulk::read_opensesame(directory = path)
-xdata <- raw_data
+temp_xdata <- raw_data
+xdata <- temp_xdata[temp_xdata$subject_nr == "999",]
+
 
 # Fix default / Default error
 # xdata$Condition <- ifelse(xdata$Condition == "default", "Default", xdata$Condition)
@@ -65,6 +67,11 @@ mtdata_2nd <- mt_import_mousetrap(
   verbose = TRUE
 )
 
+# create a PDF with all separate raw trajectories 
+setwd("../plots/")
+mt_plot_per_trajectory("trajectories.pdf", mtdata_2nd, "trajectories")
+
+
 # Bottoms up
 mtdata_2nd <- mt_remap_symmetric(
   mtdata_2nd,
@@ -84,6 +91,7 @@ mtdata_2nd <- mt_align_start(
   start = c(0, 0),
   verbose = FALSE
 )
+
 
 ## Subset Correct and Incorrect responses ####
 mtdata_2nd$data$responded_correct <- ifelse(mtdata_2nd$data$response_mt_maintrack_2nd_02 == mtdata_2nd$data$Target_pic, 1, 0) 
@@ -118,7 +126,7 @@ round(100 - (sum((mtdata_2nd$data$responded_correct)) / max(mtdata_2nd$data$coun
 #   geom_path() 
 
 
-# Time ### FOR MATHIAS: This one doesn't work with the start/end aligned object ###:
+# Time normalize
 mtdata_2nd <- mt_time_normalize(
   mtdata_2nd,
   use = "sn_trajectories",

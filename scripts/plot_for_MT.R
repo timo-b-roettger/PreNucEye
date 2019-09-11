@@ -30,6 +30,7 @@ setwd("../processed/")
 ## data set for plotting trajectories
 d2 <- read.csv("df_data.csv")
 d2 <- d2[d2$responded_correct == TRUE,]
+d2 <- d2[d2]
 
 # read in acoustic landmarks for plotting
 #landmarks <- read.csv("segmental_landmarks.csv")
@@ -61,7 +62,7 @@ xagg_r_subjects <-
 
 xagg_r <-
   d2 %>%
-  group_by(steps, Condition) %>%
+  group_by(steps, Condition, Target_pos) %>%
   summarise(mean_xpos = mean(xpos_r, na.rm = T),
             mean_ypos = mean(ypos_r, na.rm = T),
             mean_time = mean(timestamps, na.rm = T))
@@ -144,7 +145,7 @@ ggplot(xagg_r, aes(x = mean_xpos, y = mean_ypos, colour = Condition, fill = Cond
   scale_fill_manual("Condition",
                     guide = guide_legend(title = "Condition"),
                     values = c(lexical.col, object.col, verb.col)) +
-  #facet_wrap(~ subject_nr) +
+  facet_wrap(~ Target_pos) +
   #scale_x_continuous(breaks = (c(-1,-0.5,0,0.5,1)), limits = c(-1.2,1.2)) + 
   #scale_y_continuous(breaks = (c(-1,-0.5,0,0.5,1)), limits = c(-0.1,1.2)) + 
   labs(title = "Mean trajectories",
@@ -175,7 +176,7 @@ ggplot(xagg_r, aes(x = mean_time, y = mean_xpos, colour = Condition, fill = Cond
                     values = c(lexical.col, object.col, verb.col)) +
   #scale_x_continuous(breaks = (c(-1,-0.5,0,0.5,1)), limits = c(-1.2,1.2)) + 
   #scale_y_continuous(breaks = (c(-1,-0.5,0,0.5,1)), limits = c(-0.1,1.2)) + 
-  #facet_wrap( ~ Target_pos, ncol= 2, scale = "free") +
+  facet_wrap( ~ Target_pos, ncol= 2, scale = "free") +
   labs(title = "Mean horizontal cursor position",
        subtitle = "semi-transparent lines are subject averages\n",
        x = "\ntime in ms", 
@@ -189,7 +190,7 @@ ggplot(xagg_r, aes(x = mean_time, y = mean_xpos, colour = Condition, fill = Cond
 ## plotting ypos and time ##
 ############################
 
-ggplot(xagg, aes(x = mean_time, y = mean_ypos, colour = Condition, fill = Condition)) +
+ggplot(xagg_r, aes(x = mean_time, y = mean_ypos, colour = Condition, fill = Condition)) +
   # geom_path(data = xagg_subjects, 
   #           aes(x = -mean_xpos, y = mean_ypos, colour = Focus, group = interaction(subject_nr, Focus)), 
   #           alpha = 0.3, inherit.aes = FALSE) +
@@ -203,7 +204,7 @@ ggplot(xagg, aes(x = mean_time, y = mean_ypos, colour = Condition, fill = Condit
                     values = c(lexical.col, object.col, verb.col)) +
   #scale_x_continuous(breaks = (c(-1,-0.5,0,0.5,1)), limits = c(-1.2,1.2)) + 
   #scale_y_continuous(breaks = (c(-1,-0.5,0,0.5,1)), limits = c(-0.1,1.2)) + 
-  facet_wrap( ~ Target_pos, ncol= 2, scale = "free") +
+  #facet_wrap( ~ Target_pos, ncol= 2, scale = "free") +
   labs(title = "Mean vertical cursor position",
        subtitle = "semi-transparent lines are subject averages\n",
        x = "\ntime in ms", 

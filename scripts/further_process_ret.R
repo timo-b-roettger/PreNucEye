@@ -92,21 +92,22 @@ data$fixationEnd <- 0
 # Looping participants, then eyetrials
 # Needs to be validated *DT
 
+#for (p in unique(data$ID[data$ID == p])){
 for (p in unique(data$ID[data$ID == p])){
   for (i in unique(data$eyetrial[data$ID == p])) {
     for (j in 1:nrow(data[data$eyetrial[data$ID == p] == i,])) {
       #print(paste0(i,"&",j))
-      if (j == 1) {
-        data[data$eyetrial[data$ID == p] == i,]$fixationEnd[j] = 
-          data[data$eyetrial[data$ID == p] == i,]$fixationEnd[j] + data[data$eyetrial[data$ID == p] == i,]$fixDur[j]
-      } 
-      else {
-        data[data$eyetrial[data$ID == p] == i,]$fixationEnd[j] = 
-          data[data$eyetrial[data$ID == p] == i,]$fixDur[j] + data[data$eyetrial[data$ID == p] == i,]$fixationEnd[j - 1]
-        #print(data$fixationEnd[j])
-      }
-    }
-  }
+       if (j == 1) {
+         data[data$eyetrial[data$ID == p] == i,]$fixationEnd[j] = 
+           data[data$eyetrial[data$ID == p] == i,]$fixationEnd[j] + data[data$eyetrial[data$ID == p] == i,]$fixDur[j]
+       } 
+       else {
+         data[data$eyetrial[data$ID == p] == i,]$fixationEnd[j] = 
+           data[data$eyetrial[data$ID == p] == i,]$fixDur[j] + data[data$eyetrial[data$ID == p] == i,]$fixationEnd[j - 1]
+         #print(data$fixationEnd[j])
+       }
+     }
+   }
 }
 
 
