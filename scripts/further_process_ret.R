@@ -50,25 +50,25 @@ data <- xdata %>%
   filter(Condition %in% c("CG", "GG", "GC"))
 
 # define type of fixations
-data$fixTarget <- ifelse(data$Target_pos == "tl_pic" & data$roiLoc == "TL", 1, 
-                  ifelse(data$Target_pos == "tr_pic" & data$roiLoc == "TR", 1, 
-                  ifelse(data$Target_pos == "bl_pic" & data$roiLoc == "BL", 1, 
-                  ifelse(data$Target_pos == "br_pic" & data$roiLoc == "BR", 1, 0))))
+data$fixTarget <- ifelse(data$Target_pos == "TL_Pic" & data$roiLoc == "TL", 1, 
+                  ifelse(data$Target_pos == "TR_Pic" & data$roiLoc == "TR", 1, 
+                  ifelse(data$Target_pos == "BL_Pic" & data$roiLoc == "BL", 1, 
+                  ifelse(data$Target_pos == "BR_Pic" & data$roiLoc == "BR", 1, 0))))
 
-data$fixSubjComp <- ifelse(data$Target_pos == "tl_pic" & data$roiLoc == "TR", 1, 
-                    ifelse(data$Target_pos == "tr_pic" & data$roiLoc == "BR", 1, 
-                    ifelse(data$Target_pos == "bl_pic" & data$roiLoc == "TL", 1, 
-                    ifelse(data$Target_pos == "br_pic" & data$roiLoc == "BL", 1, 0))))
+data$fixSubjComp <- ifelse(data$Target_pos == "TL_Pic" & data$roiLoc == "TR", 1, 
+                    ifelse(data$Target_pos == "TR_Pic" & data$roiLoc == "BR", 1, 
+                    ifelse(data$Target_pos == "BL_Pic" & data$roiLoc == "TL", 1, 
+                    ifelse(data$Target_pos == "BR_Pic" & data$roiLoc == "BL", 1, 0))))
 
-data$fixObjComp <- ifelse(data$Target_pos == "tl_pic" & data$roiLoc == "BL", 1, 
-                   ifelse(data$Target_pos == "tr_pic" & data$roiLoc == "TL", 1, 
-                   ifelse(data$Target_pos == "bl_pic" & data$roiLoc == "BR", 1, 
-                   ifelse(data$Target_pos == "br_pic" & data$roiLoc == "TR", 1, 0))))
+data$fixObjComp <- ifelse(data$Target_pos == "TL_Pic" & data$roiLoc == "BL", 1, 
+                   ifelse(data$Target_pos == "TR_Pic" & data$roiLoc == "TL", 1, 
+                   ifelse(data$Target_pos == "BL_Pic" & data$roiLoc == "BR", 1, 
+                   ifelse(data$Target_pos == "BR_Pic" & data$roiLoc == "TR", 1, 0))))
 
-data$fixDist <- ifelse(data$Target_pos == "tl_pic" & data$roiLoc == "BR", 1, 
-                   ifelse(data$Target_pos == "tr_pic" & data$roiLoc == "BL", 1, 
-                   ifelse(data$Target_pos == "bl_pic" & data$roiLoc == "TR", 1, 
-                   ifelse(data$Target_pos == "br_pic" & data$roiLoc == "TL", 1, 0))))
+data$fixDist <-    ifelse(data$Target_pos == "TL_Pic" & data$roiLoc == "BR", 1, 
+                   ifelse(data$Target_pos == "BL_Pic" & data$roiLoc == "BL", 1, 
+                   ifelse(data$Target_pos == "BL_Pic" & data$roiLoc == "TR", 1, 
+                   ifelse(data$Target_pos == "BR_Pic" & data$roiLoc == "TL", 1, 0))))
 
 data$fixDurTarget <- ifelse(data$fixTarget == 1, data$fixDur, 0)
 data$fixDurSubjComp <- ifelse(data$fixSubjComp == 1, data$fixDur, 0)
@@ -76,42 +76,65 @@ data$fixDurObjComp <- ifelse(data$fixObjComp == 1, data$fixDur, 0)
 data$fixDurDist <- ifelse(data$fixDist == 1, data$fixDur, 0)
 
 
-## This groups by eyetrial, which is not unique across particpants *DT
+binned <- data %>%
+  # Assign bin numbers
+  group_by(eyetrial, roiLoc) %>%
+  mutate(Bin = assign_bins(Time, bin_width = 20)) %>%
+  # Add up the looks to each AOI in each bin.
+  group_by(ID, Condition, Bin) %>%
+  summarise(
+    # Round to nearest 10ms (effectively nearest 50ms)
+    Time = round(mean(Time), -1),
+    ToDistractor = sum(Distractor),
+    ToTarget = sum(Target)) %>%
+  ungroup
 
-# data <- data %>% 
-#   group_by(eyetrial) %>% 
-#   mutate(fixDurTarget.s = sum(fixDurTarget, na.rm = T)/fixationSum,
-#          fixDurObjComp.s = sum(fixDurObjComp, na.rm = T)/fixationSum,
-#          fixDurSubjComp.s = sum(fixDurSubjComp, na.rm = T)/fixationSum,
-#          fixDurDist.s = sum(fixDurDist, na.rm = T)/fixationSum) %>% 
-#   ungroup()
+
+# make factor
+data$ID <- as.factor(data$ID)
 
 ## Loop the vectors to accumulate end of fixation
 data$fixationEnd <- 0
 
-# Looping participants, then eyetrials
-# Needs to be validated *DT
+# Looping participants, then eyetrials maximal duration
+# works now TR
 
-#for (p in unique(data$ID[data$ID == p])){
-for (p in unique(data$ID[data$ID == p])){
+for (p in unique(data$ID)) {
   for (i in unique(data$eyetrial[data$ID == p])) {
-    for (j in 1:nrow(data[data$eyetrial[data$ID == p] == i,])) {
-      #print(paste0(i,"&",j))
+    for (j in 1:nrow(data[data$eyetrial == i & data$ID == p,])) {
+       print(paste0(p, "&", i,"&",j))
        if (j == 1) {
-         data[data$eyetrial[data$ID == p] == i,]$fixationEnd[j] = 
-           data[data$eyetrial[data$ID == p] == i,]$fixationEnd[j] + data[data$eyetrial[data$ID == p] == i,]$fixDur[j]
-       } 
+         #data[data$eyetrial[data$ID == p] == i,]$fixationEnd[j] =
+         #data[data$eyetrial[data$ID == p] == i,]$fixationEnd[j] + data[data$eyetrial[data$ID == p] == i,]$fixDur[j]
+         data[data$eyetrial == i & data$ID == p,]$fixationEnd[j] =
+         data[data$eyetrial == i & data$ID == p,]$fixDur[j] + data[data$eyetrial == i & data$ID == p,]$fixationEnd[j]
+         print(data$fixationEnd[j])
+       }
        else {
-         data[data$eyetrial[data$ID == p] == i,]$fixationEnd[j] = 
-           data[data$eyetrial[data$ID == p] == i,]$fixDur[j] + data[data$eyetrial[data$ID == p] == i,]$fixationEnd[j - 1]
-         #print(data$fixationEnd[j])
+           #data[data$eyetrial[data$ID == p] == i,]$fixationEnd[j] =
+           #data[data$eyetrial[data$ID == p] == i,]$fixDur[j] + data[data$eyetrial[data$ID == p] == i,]$fixationEnd[j - 1]
+           data[data$eyetrial == i & data$ID == p,]$fixationEnd[j] =
+           data[data$eyetrial == i & data$ID == p,]$fixDur[j] + data[data$eyetrial == i & data$ID == p,]$fixationEnd[j - 1]
+           print(data$fixationEnd[j])
        }
      }
-   }
+  }
 }
 
 
+
+
+
+
+
 # Now categorize fixations according to time windows
+data$prenuc_window <- NA
+data$prenuc_window <- ifelse(data$fixationEnd <= data$prenuclear_onset, "early",
+                      ifelse(data$prenuclear_onset <= data$fixationEnd & data$fixationEnd <= data$referent_onset, "prenuclear",
+                             ifelse(data$referent_onset <= data$fixationEnd & data$fixationEnd <= data$adverb_onset, "nuclear", "adverb")))
+
+
+
 data$window <- NA
 data$window <- ifelse(data$fixationEnd <= data$prenuclear_onset, "early",
                       ifelse(data$prenuclear_onset <= data$fixationEnd & data$fixationEnd <= data$referent_onset, "prenuclear",
@@ -124,15 +147,16 @@ data$window <- ifelse(data$fixationEnd <= data$prenuclear_onset, "early",
 data$dur_early <- data$dur_prenuclear <- data$dur_nuclear <- data$dur_adverb <- 0
 
 # Loop all gazes
-for (ostrial in unique(data$eyetrial)){
+for (p in unique(data$ID)) {
+  for (ostrial in unique(data$eyetrial[data$ID == p])) {
   
-  # Go window by window and sum the fixation durations for each, matching by ostrial ()
-  data$dur_early[data$eyetrial == ostrial] = sum(data$fixDur[data$eyetrial[data$window == "early"] == ostrial])
-  data$dur_prenuclear[data$eyetrial == ostrial] = sum(data$fixDur[data$eyetrial[data$window == "prenuclear"] == ostrial])
-  data$dur_nuclear[data$eyetrial == ostrial] = sum(data$fixDur[data$eyetrial[data$window == "nuclear"] == ostrial])
-  data$dur_adverb[data$eyetrial == ostrial] = sum(data$fixDur[data$eyetrial[data$window == "adverb"] == ostrial])
+    # Go window by window and sum the fixation durations for each, matching by ostrial ()
+    data[data$ID == p & data$eyetrial == ostrial,]$dur_early = sum(data$fixDur[data$eyetrial[data$window == "early"] == ostrial])
+    data$dur_prenuclear[data$eyetrial == ostrial] = sum(data$fixDur[data$eyetrial[data$window == "prenuclear"] == ostrial])
+    data$dur_nuclear[data$eyetrial == ostrial] = sum(data$fixDur[data$eyetrial[data$window == "nuclear"] == ostrial])
+    data$dur_adverb[data$eyetrial == ostrial] = sum(data$fixDur[data$eyetrial[data$window == "adverb"] == ostrial])
+  }
 }
-
 
 # To do: Now downsample and assign fixation durations only within windows
 
