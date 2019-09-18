@@ -15,11 +15,9 @@
 ##          It outputs the resulting dataframe as ret_processed.csv" into the
 ##          directory <your wd>/processed/.
 #
-<<<<<<< HEAD
+
 ## Version: 9/18/2019
-=======
-## Version: 9/10/2019
->>>>>>> 031d46c1edcc820abab1e7c57740adcd0e3cacfa
+
 #
 ## Notes
 ##          * This requires installation of the SRR EDF API, avialable free for download
@@ -104,23 +102,16 @@ ret.dat$lgerror[ret.dat$key[lgerror]] <- 1
 ### Write the output to /processed/ ###
 #######################################
 
-<<<<<<< HEAD
-=======
 # If no /processed folder, create one
 setwd("../")
 #ifelse(!dir.exists(file.path(getwd(), "../processed/")), dir.create(file.path(getwd())), FALSE)
 
-# Write the beh output
-setwd("raw_beh/")
-readr::write_csv(ret.dat, "ret_beh.csv")
-
->>>>>>> 031d46c1edcc820abab1e7c57740adcd0e3cacfa
-# Write the full output
-setwd("../processed/")
-readr::write_csv(ret.dat, "ret_processed_stage_1.csv")
-
 # Stage 2 uses the df name 'data', so let's prep for that before ending
 data <- ret.dat
+
+# Write the full output
+setwd("../processed/")
+readr::write_csv(data, "ret_processed_stage_1.csv")
 
 # Cleanup
 rm(beh, ret, ret.dat, datapath, lgerror)
