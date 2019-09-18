@@ -158,15 +158,15 @@ for (participant in participants){
 
 ## Also calculate proportions for fixation duration by window
 
-data$prop_early <- data$dur_early / (data$dur_early + data$dur_adverb + data$dur_nuclear + data$dur_prenuclear)
-data$prop_prenuclear <- data$dur_prenuclear / (data$dur_early + data$dur_adverb + data$dur_nuclear + data$dur_prenuclear)
-data$prop_nuclear <- data$dur_nuclear/ (data$dur_early + data$dur_adverb + data$dur_nuclear + data$dur_prenuclear)
-data$prop_adverb <- data$dur_adverb / (data$dur_early + data$dur_adverb + data$dur_nuclear + data$dur_prenuclear)
+fixSum <- data$dur_early + data$dur_adverb + data$dur_nuclear + data$dur_prenuclear
 
+data$prop_early <- data$dur_early / fixSum
+data$prop_prenuclear <- data$dur_prenuclear / fixSum
+data$prop_nuclear <- data$dur_nuclear/ fixSum
+data$prop_adverb <- data$dur_adverb / fixSum
 
 ## Create a new data structure for proportion of fixation by roi by trial
-
-data.roi <- setNames(data.frame(matrix(ncol = 2, nrow = 0)), c("ID", "eyetrial"))
+data.roi <- setNames(data.frame(matrix(ncol = 2, nrow = length(unique(data$ID))*96 )), c("ID", "eyetrial"))
 
 row = 1 # Row counter
 
@@ -178,9 +178,6 @@ for (participant in participants){
     # Add trial and participants to data.roi
     data.roi[row, 1] <- participant
     data.roi[row, 2] <- trial
-    
-    # Sum of all fixations in the trial
-    fixSum = sum(data$fixDur[data$eyetrial == trial])
     
     ## ROI by ROI, sum fixations by window
     # TL
@@ -219,37 +216,44 @@ for (participant in participants){
     # Adverb
     data.roi$BL_adverb[row] <- sum(na.omit(data$fixDur[data$ID == participant & data$eyetrial == trial & data$roiLoc == "BL" & data$window == "adverb"]))
     
+    # Sum of all fixations in the trial
+    fixSum = sum(data.roi[row,3:18])
+    
     ## Convert the above sums to proportions
     # TL
-    data.roi$TL_early[row] = data.roi$TL_early[row] / fixSum
-    data.roi$TL_prenuclear[row] = data.roi$TL_prenuclear[row] / fixSum
-    data.roi$TL_nuclear[row] = data.roi$TL_nuclear[row] / fixSum
-    data.roi$TL_adverb[row] = data.roi$TL_adverb[row] / fixSum
+    data.roi$TL_early_prop[row] = data.roi$TL_early[row] / fixSum
+    data.roi$TL_prenuclear_prop[row] = data.roi$TL_prenuclear[row] / fixSum
+    data.roi$TL_nuclear_prop[row] = data.roi$TL_nuclear[row] / fixSum
+    data.roi$TL_adverb_prop[row] = data.roi$TL_adverb[row] / fixSum
 
     # TR
-    data.roi$TR_early[row] = data.roi$TR_early[row] / fixSum
-    data.roi$TR_prenuclear[row] = data.roi$TR_prenuclear[row] / fixSum
-    data.roi$TR_nuclear[row] = data.roi$TR_nuclear[row] / fixSum
-    data.roi$TR_adverb[row] = data.roi$TR_adverb[row] / fixSum
+    data.roi$TR_early_prop[row] = data.roi$TR_early[row] / fixSum
+    data.roi$TR_prenuclear_prop[row] = data.roi$TR_prenuclear[row] / fixSum
+    data.roi$TR_nuclear_prop[row] = data.roi$TR_nuclear[row] / fixSum
+    data.roi$TR_adverb_prop[row] = data.roi$TR_adverb[row] / fixSum
     
     # BR
-    data.roi$BR_early[row] = data.roi$BR_early[row] / fixSum
-    data.roi$BR_prenuclear[row] = data.roi$BR_prenuclear[row] / fixSum
-    data.roi$BR_nuclear[row] = data.roi$BR_nuclear[row] / fixSum
-    data.roi$BR_adverb[row] = data.roi$BR_adverb[row] / fixSum
+    data.roi$BR_early_prop[row] = data.roi$BR_early[row] / fixSum
+    data.roi$BR_prenuclear_prop[row] = data.roi$BR_prenuclear[row] / fixSum
+    data.roi$BR_nuclear_prop[row] = data.roi$BR_nuclear[row] / fixSum
+    data.roi$BR_adverb_prop[row] = data.roi$BR_adverb[row] / fixSum
     
     # BL
-    data.roi$BL_early[row] = data.roi$BL_early[row] / fixSum
-    data.roi$BL_prenuclear[row] = data.roi$BL_prenuclear[row] / fixSum
-    data.roi$BL_nuclear[row] = data.roi$BL_nuclear[row] / fixSum
-    data.roi$BL_adverb[row] = data.roi$BL_adverb[row] / fixSum
+    data.roi$BL_early_prop[row] = data.roi$BL_early[row] / fixSum
+    data.roi$BL_prenuclear_prop[row] = data.roi$BL_prenuclear[row] / fixSum
+    data.roi$BL_nuclear_prop[row] = data.roi$BL_nuclear[row] / fixSum
+    data.roi$BL_adverb_prop[row] = data.roi$BL_adverb[row] / fixSum
+    
+    ## Check our work
+    #data.roi$fixSum[row] <- fixSum
+    #data.roi$proSum[row] <- sum(data.roi[row,19:34])
     
     # Next row
     row = row + 1
   } #/trial
 } #/participant
 
-
+# todo: join the windows with the main dataset by trial and participant 
 
 #######################################
 ### Write the output to /processed/ ###
@@ -258,7 +262,7 @@ for (participant in participants){
 # Write the full output
 setwd("../processed/")
 readr::write_csv(data, "ret_processed_stage_2.csv")
-readr::write_csv(data, "ret_processed_roi-windows.csv")
+readr::write_csv(data.roi, "ret_processed_roi-windows.csv")
 
 # Cleanup
 rm(datapath, participant, participants, rois, trial, windows)
