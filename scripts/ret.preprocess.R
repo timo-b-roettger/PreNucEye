@@ -2,16 +2,24 @@
 ### Info ###
 ############
 #
-## Author:  Dan Turner (dturner @ northwestern.edu)
+## Authors:  Dan Turner (dturner @ northwestern.edu)
+#            Timo Roettger (timo.b.roettger @ gmail.com)
 #
 ## Project: Eye tracking during prenuclear pitch accent comprehension
 #
-##          This file imports eyetracking data (.edf) from OpenSesame (.csv),
-##          preprocesses the data by specifying regions of interest, counting hits and adding
-##          useful columns to the dataframe. It outputs the resulting dataframe as ret_dat.csv into the
-##          directory <your wd>/processed/. If the directory doesn't exist this creates it.
+##          Stage 1
 #
+##          This file imports eyetracking data (.edf) from OpenSesame (.csv),
+##          preprocesses the data by specifying regions of interest and counting hits in them.
+##
+##          It outputs the resulting dataframe as ret_processed.csv" into the
+##          directory <your wd>/processed/.
+#
+<<<<<<< HEAD
+## Version: 9/18/2019
+=======
 ## Version: 9/10/2019
+>>>>>>> 031d46c1edcc820abab1e7c57740adcd0e3cacfa
 #
 ## Notes
 ##          * This requires installation of the SRR EDF API, avialable free for download
@@ -72,7 +80,7 @@ ret <- calcHits(ret)
 ### Merge ET and behavioral data ###
 ####################################
 
-### Index the files by trial nuber (accounting for 0 index vs. 1 index) and participant ID
+### Index the files by trial number (accounting for 0 index vs. 1 index) and participant ID
 
 ## Adjust the indexing
 beh$count_pygaze_drift_corr <- beh$count_pygaze_drift_corr + 1
@@ -92,24 +100,12 @@ lgerror <- grep("!MODE", ret$messages$message)
 ret.dat$lgerror <- 0
 ret.dat$lgerror[ret.dat$key[lgerror]] <- 1
 
-########################################
-### Encrich the data with new fields ###
-########################################
-
-## How long was the fixation?
-ret.dat$fixDur <- ret.dat$entime - ret.dat$sttime
-
-# Encode ROI location for intuitive matching later
-ret.dat$roiLoc = NA
-ret.dat$roiLoc[ret.dat$roi_1 == 1] <- "TL"
-ret.dat$roiLoc[ret.dat$roi_2 == 1] <- "TR"
-ret.dat$roiLoc[ret.dat$roi_3 == 1] <- "BL"
-ret.dat$roiLoc[ret.dat$roi_4 == 1] <- "BR"
-
 #######################################
 ### Write the output to /processed/ ###
 #######################################
 
+<<<<<<< HEAD
+=======
 # If no /processed folder, create one
 setwd("../")
 #ifelse(!dir.exists(file.path(getwd(), "../processed/")), dir.create(file.path(getwd())), FALSE)
@@ -118,8 +114,15 @@ setwd("../")
 setwd("raw_beh/")
 readr::write_csv(ret.dat, "ret_beh.csv")
 
+>>>>>>> 031d46c1edcc820abab1e7c57740adcd0e3cacfa
 # Write the full output
 setwd("../processed/")
-readr::write_csv(ret.dat, "ret_processed.csv")
+readr::write_csv(ret.dat, "ret_processed_stage_1.csv")
+
+# Stage 2 uses the df name 'data', so let's prep for that before ending
+data <- ret.dat
+
+# Cleanup
+rm(beh, ret, ret.dat, datapath, lgerror)
 
 # Done
