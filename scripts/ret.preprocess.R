@@ -37,6 +37,7 @@ library(readr)
 library(readbulk)
 library(rstudioapi)
 library(data.table)
+library(rstudioapi)
 
 # Getting the path of your current open file
 datapath = rstudioapi::getActiveDocumentContext()$path 

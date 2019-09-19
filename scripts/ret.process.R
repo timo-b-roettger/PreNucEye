@@ -122,11 +122,11 @@ for (participant in participants){
 } #/participant
 
 ## Separate fixation duration by acoustic landmark into windows
+# Loop all gazes, grouping by participant and trial
 
 # Initialize the columns for windows
-data$window_adverb <- data$window_nuclear <- data$window_prenuc <- data$window_early <- 0
+data$window_adverb <- data$window_nuclear <- data$window_prenuc <- data$window_early <- data$mod <- 0
 
-# Loop all gazes, grouping by participant and trial
 # By participant
 for (participant in participants){
   # By trial
@@ -140,53 +140,79 @@ for (participant in participants){
       lnmk_referent = data$referent_onset[gaze]
       lnmk_adverb = data$adverb_onset[gaze]
       
-      ## By time window
+      # Some shortcut variables to make the following more readable
+      fixStart = data$fixationEnd[gaze] - data$fixDur[gaze]
+      fixEnd = data$fixationEnd[gaze]
+      fixDur = data$fixDur[gaze]
       
-      # Early (before prenuclear landmark)
-      if (data$fixationEnd[gaze] <= lnmk_prenuc) {
-        # Add it
-        data$window_early[gaze] = data$window_early[gaze] + data$fixDur[gaze]
+      ## Early OG  [fixations that start and end before the first landmark]
+      if (fixStart <= lnmk_prenuc && fixEnd <= lnmk_prenuc) {
         
-        # If this window overlaps with the landmark, then carry the remainder (split $fixDur)
-        if (data$window_early[gaze] > lnmk_prenuc) {
-          data$window_prenuc[gaze] = data$window_prenuc[gaze] + data$window_early[gaze] - lnmk_prenuc
-        } #/overlap
+        # Add the whole fixation to the window
+        data$window_early[gaze] = data$window_early[gaze] + fixDur
         
-      } #/early
+        # Early OF [fixations start before BUT end after the first landmark]
+      } else if (fixStart <= lnmk_prenuc && fixEnd >= lnmk_prenuc && fixStart <= lnmk_referent) {
+        
+        # Add the duration from the start of the fixation to the first landmark to the early window
+        data$window_early[gaze] =  data$window_early[gaze] + (lnmk_prenuc - fixStart)
+        
+        # Add the durtation from the first landmark to the end of the dixation to the prenuc window
+        data$window_prenuc[gaze] = fixEnd - lnmk_prenuc
+        
+        
+        
+        
+      ## Prenuclear OG [fixations that start after the first landmark and end before the second landmark]
+      } else if (fixStart >= lnmk_prenuc && fixEnd <= lnmk_referent) {
+        
+        # Add the whole fixation to the window
+        data$window_prenuc[gaze] = data$window_prenuc[gaze] + fixDur
       
-      # Prenuclear (after prenuclear landmark, before referent landmark)
-      if (data$fixationEnd[gaze] <= lnmk_referent && data$fixationEnd[gaze] >= lnmk_prenuc) { 
-        # Add it
-        data$window_prenuc[gaze] = data$window_prenuc[gaze] + data$fixDur[gaze]
+      ## Prenuclear OF [fixations that start after the first landmark BUT end after the second landmark] 
+      } else if (fixStart >= lnmk_prenuc && fixEnd >= lnmk_referent && fixStart <= lnmk_referent) {
         
-        # If this window overlaps with the landmark, then carry the remainder (split $fixDur)
-        if (data$window_prenuc[gaze] > lnmk_referent) {
-          data$window_nuclear[gaze] = data$window_nuclear[gaze] + data$window_prenuc[gaze] - lnmk_referent
-        } #/overlap
+        # Add the duration from the fixation start to the second landmark to the first window
+        data$window_prenuc[gaze] = data$window_prenuc[gaze] + (lnmk_referent - fixStart)
+        
+        # Add the later part of the fixation to the later window
+        data$window_nuclear[gaze] = fixEnd - lnmk_referent
+        
+        
+        
+        
+      ## Nuclear OG [fixations that start after the second landmark and end before the third landmark] 
+      } else if (fixStart >= lnmk_referent && fixEnd <= lnmk_adverb ) {
+        
+        # Add the whole fixation to the window
+        data$window_nuclear[gaze] = data$window_nuclear[gaze] + fixDur
+        
+      ## Nuclear OF [fixations the start after the second landmark BUT end after the third landmark]
+      } else if (fixStart >= lnmk_referent && fixEnd >= lnmk_adverb && fixStart <= lnmk_adverb) {
 
-      } #/prenuclear
-      
-      # Nuclear (after referent landmark, before adverb landmark)
-      if (data$fixationEnd[gaze] <= lnmk_adverb && data$fixationEnd[gaze] >= lnmk_referent) { 
-        # Add it
-        data$window_nuclear[gaze] = data$window_nuclear[gaze] + data$fixDur[gaze]
+        # Add the earlier part of the fixation to the earlier window *problem here*
+        data$window_nuclear[gaze] = data$window_nuclear[gaze] + (lnmk_adverb - fixStart)
+
+        # Add the later part of the fixation to the later window
+        data$window_adverb[gaze] = fixEnd - lnmk_adverb
         
-        # If this window overlaps with the landmark, then carry the remainder (split $fixDur)
-        if (data$window_nuclear[gaze] > lnmk_adverb) {
-          data$window_adverb[gaze] = data$window_adverb[gaze] + data$window_nuclear[gaze] - lnmk_adverb
-        } #/overlap
         
-      } #/nuclear
-      
-      # Adverb (after adverb landmark)
-      if (data$fixationEnd[gaze] >= lnmk_adverb) { 
-        # Add it
-        data$window_adverb[gaze] = data$window_adverb[gaze] + data$fixDur[gaze]
-      } #/adverb
+        
+        
+      ## Adverb OG [fixations start after the third landmark]
+      } else if (fixStart >= lnmk_adverb) {
+        
+        # Add the whole fixation to the window
+        data$window_adverb[gaze] = data$window_adverb[gaze] + fixDur
+        
+      } # end conditionals
       
     } #/gaze
   } #/trial
 } #/participant
+
+## Validate the above
+table(data$window_early + data$window_prenuc + data$window_nuclear + data$window_adverb == data$fixDur)
 
 ## Create a new dataframe for proportion of fixation by roi, summarized by trial (not gaze/fixation)
 data.roi <- setNames(data.frame(matrix(ncol = 2, nrow = length(unique(data$ID))*96 )), c("ID", "eyetrial"))
@@ -233,15 +259,14 @@ for (participant in participants){
     # NA
     # Fixations that are not in an ROI, as a proportion of the total fixationd duration
     data.roi$roi_na[row] = sum(data$fixDur[data$eyetrial == trial & data$ID == participant][is.na(data$roiLoc[data$eyetrial == trial & data$ID == participant])]) / fixSum
-
-    # Check our work
-    #data.roi$validate = sum(data.roi[row,3:19])
     
     # Next row
     row = row + 1
   } #/trial
 } #/participant
 
+# Validate the above (should be 'TRUE')
+sum(data.roi[3:19]) == nrow(data.roi)
 
 ## Merge data.roi into data
 data <- merge.data.frame(data, data.roi)
