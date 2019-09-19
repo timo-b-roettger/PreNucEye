@@ -125,7 +125,7 @@ for (participant in participants){
 # Loop all gazes, grouping by participant and trial
 
 # Initialize the columns for windows
-data$window_adverb <- data$window_nuclear <- data$window_prenuc <- data$window_early <- data$mod <- 0
+data$window_adverb <- data$window_nuclear <- data$window_prenuc <- data$window_early <- 0
 
 # By participant
 for (participant in participants){
@@ -160,9 +160,6 @@ for (participant in participants){
         # Add the durtation from the first landmark to the end of the dixation to the prenuc window
         data$window_prenuc[gaze] = fixEnd - lnmk_prenuc
         
-        
-        
-        
       ## Prenuclear OG [fixations that start after the first landmark and end before the second landmark]
       } else if (fixStart >= lnmk_prenuc && fixEnd <= lnmk_referent) {
         
@@ -178,9 +175,6 @@ for (participant in participants){
         # Add the later part of the fixation to the later window
         data$window_nuclear[gaze] = fixEnd - lnmk_referent
         
-        
-        
-        
       ## Nuclear OG [fixations that start after the second landmark and end before the third landmark] 
       } else if (fixStart >= lnmk_referent && fixEnd <= lnmk_adverb ) {
         
@@ -195,9 +189,6 @@ for (participant in participants){
 
         # Add the later part of the fixation to the later window
         data$window_adverb[gaze] = fixEnd - lnmk_adverb
-        
-        
-        
         
       ## Adverb OG [fixations start after the third landmark]
       } else if (fixStart >= lnmk_adverb) {
@@ -280,6 +271,6 @@ setwd("../processed/")
 readr::write_csv(data, "ret_processed_stage_2.csv")
 
 # Cleanup
-rm(data.roi, datapath, participant, participants, trial, fixSum, gaze, lnmk_adverb, lnmk_prenuc, lnmk_referent, row, trialgazes)
+rm(data.roi, datapath, participant, participants, trial, fixSum, gaze, lnmk_adverb, lnmk_prenuc, lnmk_referent, row, trialgazes, fixDur, fixEnd, fixStart)
 
 # End
