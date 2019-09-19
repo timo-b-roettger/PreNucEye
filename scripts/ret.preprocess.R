@@ -16,7 +16,7 @@
 ##          directory <your wd>/processed/.
 #
 
-## Version: 9/18/2019
+## Version: 9/19/2019
 
 #
 ## Notes
@@ -109,11 +109,11 @@ setwd("../")
 # Stage 2 uses the df name 'data', so let's prep for that before ending
 data <- ret.dat
 
-# Write the full output
-setwd("../processed/")
-readr::write_csv(data, "ret_processed_stage_1.csv")
-
 # Cleanup
 rm(beh, ret, ret.dat, datapath, lgerror)
+
+# Write the full output
+setwd("../processed/")
+#readr::write_csv(data, "ret_processed_stage_1.csv") # Optional step
 
 # Done

@@ -13,7 +13,7 @@
 ##          proportions of duration per ROI, ROI image and role (i.e. target), and adds other columns to
 ##          facilitate analysis.
 #
-## Version: 9/18/2019
+## Version: 9/19/2019
 #
 #############
 ### Setup ###
@@ -105,13 +105,12 @@ data$fixDurDist <- ifelse(data$fixDist == 1, data$fixDur, 0)
 
 # Lists for loops 
 participants <- unique(data$ID)
-windows <- c("early", "prenuclear", "nuclear", "adverb") # not used yet
-rois <- c("TR", "TL", "BR", "BL") # not used yet
 
 # Initialize variables
 data$fixationEnd <- 0
 
 ## Calculate a running total for fixation duration within trial and participant, 'fixationEnd'
+
 # By participant
 for (participant in participants){
   # By trial
@@ -122,50 +121,74 @@ for (participant in participants){
   } #/trial
 } #/participant
 
+## Separate fixation duration by acoustic landmark into windows
 
-## Categorize fixations according to time windows
-data$window <- NA
+# Initialize the columns for windows
+data$window_adverb <- data$window_nuclear <- data$window_prenuc <- data$window_early <- 0
 
-# Early
-data$window[data$fixationEnd <= data$prenuclear_onset] <- "early"
-
-# Prenuclear
-data$window[data$prenuclear_onset <= data$fixationEnd & data$fixationEnd <= data$referent_onset] <- "prenuclear"
-
-# Nuclear
-data$window[data$referent_onset <= data$fixationEnd & data$fixationEnd <= data$adverb_onset] <- "nuclear"
-
-# Adverb
-data$window[data$fixationEnd >= data$adverb_onset] <- "adverb"
-
-## Calculate a sum of duration fxiations for each window by trial by participant
-
-# Initialize cols
-data$dur_early <- data$dur_prenuclear <- data$dur_nuclear <- data$dur_adverb <- 0
-
+# Loop all gazes, grouping by participant and trial
 # By participant
 for (participant in participants){
   # By trial
   for (trial in unique(data$eyetrial[data$ID == participant])){
-    
-    data$dur_early[data$ID == participant & data$eyetrial == trial] = sum(data$fixDur[data$eyetrial == trial & data$ID == participant & data$window == "early"])
-    data$dur_prenuclear[data$ID == participant & data$eyetrial == trial] = sum(data$fixDur[data$eyetrial == trial & data$ID == participant & data$window == "prenuclear"])
-    data$dur_nuclear[data$ID == participant & data$eyetrial == trial] = sum(data$fixDur[data$eyetrial == trial & data$ID == participant & data$window == "nuclear"])
-    data$dur_adverb[data$ID == participant & data$eyetrial == trial] = sum(data$fixDur[data$eyetrial == trial & data$ID == participant & data$window == "adverb"])
-    
+    # By gaze
+    trialgazes = which(data$ID == participant & data$eyetrial == trial)
+    for (gaze in trialgazes){
+      
+      # Retreive acoustic onsets for this trial
+      lnmk_prenuc = data$prenuclear_onset[gaze]
+      lnmk_referent = data$referent_onset[gaze]
+      lnmk_adverb = data$adverb_onset[gaze]
+      
+      ## By time window
+      
+      # Early (before prenuclear landmark)
+      if (data$fixationEnd[gaze] <= lnmk_prenuc) {
+        # Add it
+        data$window_early[gaze] = data$window_early[gaze] + data$fixDur[gaze]
+        
+        # If this window overlaps with the landmark, then carry the remainder (split $fixDur)
+        if (data$window_early[gaze] > lnmk_prenuc) {
+          data$window_prenuc[gaze] = data$window_prenuc[gaze] + data$window_early[gaze] - lnmk_prenuc
+        } #/overlap
+        
+      } #/early
+      
+      # Prenuclear (after prenuclear landmark, before referent landmark)
+      if (data$fixationEnd[gaze] <= lnmk_referent && data$fixationEnd[gaze] >= lnmk_prenuc) { 
+        # Add it
+        data$window_prenuc[gaze] = data$window_prenuc[gaze] + data$fixDur[gaze]
+        
+        # If this window overlaps with the landmark, then carry the remainder (split $fixDur)
+        if (data$window_prenuc[gaze] > lnmk_referent) {
+          data$window_nuclear[gaze] = data$window_nuclear[gaze] + data$window_prenuc[gaze] - lnmk_referent
+        } #/overlap
+
+      } #/prenuclear
+      
+      # Nuclear (after referent landmark, before adverb landmark)
+      if (data$fixationEnd[gaze] <= lnmk_adverb && data$fixationEnd[gaze] >= lnmk_referent) { 
+        # Add it
+        data$window_nuclear[gaze] = data$window_nuclear[gaze] + data$fixDur[gaze]
+        
+        # If this window overlaps with the landmark, then carry the remainder (split $fixDur)
+        if (data$window_nuclear[gaze] > lnmk_adverb) {
+          data$window_adverb[gaze] = data$window_adverb[gaze] + data$window_nuclear[gaze] - lnmk_adverb
+        } #/overlap
+        
+      } #/nuclear
+      
+      # Adverb (after adverb landmark)
+      if (data$fixationEnd[gaze] >= lnmk_adverb) { 
+        # Add it
+        data$window_adverb[gaze] = data$window_adverb[gaze] + data$fixDur[gaze]
+      } #/adverb
+      
+    } #/gaze
   } #/trial
 } #/participant
 
-## Also calculate proportions for fixation duration by window
-
-fixSum <- data$dur_early + data$dur_adverb + data$dur_nuclear + data$dur_prenuclear
-
-data$prop_early <- data$dur_early / fixSum
-data$prop_prenuclear <- data$dur_prenuclear / fixSum
-data$prop_nuclear <- data$dur_nuclear/ fixSum
-data$prop_adverb <- data$dur_adverb / fixSum
-
-## Create a new data structure for proportion of fixation by roi by trial
+## Create a new dataframe for proportion of fixation by roi, summarized by trial (not gaze/fixation)
 data.roi <- setNames(data.frame(matrix(ncol = 2, nrow = length(unique(data$ID))*96 )), c("ID", "eyetrial"))
 
 row = 1 # Row counter
@@ -179,81 +202,49 @@ for (participant in participants){
     data.roi[row, 1] <- participant
     data.roi[row, 2] <- trial
     
-    ## ROI by ROI, sum fixations by window
+    # Total fixation time for this trial (across all windows and ROIs)
+    fixSum = sum(data$fixDur[data$eyetrial == trial & data$ID == participant])
+    
+    # By ROI
     # TL
-    data.roi$TL_early[row] <- sum(na.omit(data$fixDur[data$ID == participant & data$eyetrial == trial & data$roiLoc == "TL" & data$window == "early"]))
-    # Prenuclear
-    data.roi$TL_prenuclear[row] <- sum(na.omit(data$fixDur[data$ID == participant & data$eyetrial == trial & data$roiLoc == "TL" & data$window == "prenuclear"]))
-    #  Nuclear
-    data.roi$TL_nuclear[row] <- sum(na.omit(data$fixDur[data$ID == participant & data$eyetrial == trial & data$roiLoc == "TL" & data$window == "nuclear"]))
-    # Adverb
-    data.roi$TL_adverb[row] <- sum(na.omit(data$fixDur[data$ID == participant & data$eyetrial == trial & data$roiLoc == "TL" & data$window == "adverb"]))
+    data.roi$TL_early[row] = sum(na.omit(data$window_early[data$roiLoc == "TL" & data$eyetrial == trial & data$ID == participant])) / fixSum
+    data.roi$TL_prenuclear[row] = sum(na.omit(data$window_prenuc[data$roiLoc == "TL" & data$eyetrial == trial & data$ID == participant])) / fixSum
+    data.roi$TL_nuclear[row] = sum(na.omit(data$window_nuclear[data$roiLoc == "TL" & data$eyetrial == trial & data$ID == participant])) / fixSum
+    data.roi$TL_adverb[row] = sum(na.omit(data$window_adverb[data$roiLoc == "TL" & data$eyetrial == trial & data$ID == participant])) / fixSum
     
     # TR
-    data.roi$TR_early[row] <- sum(na.omit(data$fixDur[data$ID == participant & data$eyetrial == trial & data$roiLoc == "TR" & data$window == "early"]))
-    # Prenuclear
-    data.roi$TR_prenuclear[row] <- sum(na.omit(data$fixDur[data$ID == participant & data$eyetrial == trial & data$roiLoc == "TR" & data$window == "prenuclear"]))
-    #  Nuclear
-    data.roi$TR_nuclear[row] <- sum(na.omit(data$fixDur[data$ID == participant & data$eyetrial == trial & data$roiLoc == "TR" & data$window == "nuclear"]))
-    # Adverb
-    data.roi$TR_adverb[row] <- sum(na.omit(data$fixDur[data$ID == participant & data$eyetrial == trial & data$roiLoc == "TR" & data$window == "adverb"]))
+    data.roi$TR_early[row] = sum(na.omit(data$window_early[data$roiLoc == "TR" & data$eyetrial == trial & data$ID == participant])) / fixSum
+    data.roi$TR_prenuclear[row] = sum(na.omit(data$window_prenuc[data$roiLoc == "TR" & data$eyetrial == trial & data$ID == participant])) / fixSum
+    data.roi$TR_nuclear[row] = sum(na.omit(data$window_nuclear[data$roiLoc == "TR" & data$eyetrial == trial & data$ID == participant])) / fixSum
+    data.roi$TR_adverb[row] = sum(na.omit(data$window_adverb[data$roiLoc == "TR" & data$eyetrial == trial & data$ID == participant])) / fixSum
     
     # BR
-    data.roi$BR_early[row] <- sum(na.omit(data$fixDur[data$ID == participant & data$eyetrial == trial & data$roiLoc == "BR" & data$window == "early"]))
-    # Prenuclear
-    data.roi$BR_prenuclear[row] <- sum(na.omit(data$fixDur[data$ID == participant & data$eyetrial == trial & data$roiLoc == "BR" & data$window == "prenuclear"]))
-    #  Nuclear
-    data.roi$BR_nuclear[row] <- sum(na.omit(data$fixDur[data$ID == participant & data$eyetrial == trial & data$roiLoc == "BR" & data$window == "nuclear"]))
-    # Adverb
-    data.roi$BR_adverb[row] <- sum(na.omit(data$fixDur[data$ID == participant & data$eyetrial == trial & data$roiLoc == "BR" & data$window == "adverb"]))
+    data.roi$BR_early[row] = sum(na.omit(data$window_early[data$roiLoc == "BR" & data$eyetrial == trial & data$ID == participant])) / fixSum
+    data.roi$BR_prenuclear[row] = sum(na.omit(data$window_prenuc[data$roiLoc == "BR" & data$eyetrial == trial & data$ID == participant])) / fixSum
+    data.roi$BR_nuclear[row] = sum(na.omit(data$window_nuclear[data$roiLoc == "BR" & data$eyetrial == trial & data$ID == participant])) / fixSum
+    data.roi$BR_adverb[row] = sum(na.omit(data$window_adverb[data$roiLoc == "BR" & data$eyetrial == trial & data$ID == participant])) / fixSum
     
     # BL
-    data.roi$BL_early[row] <- sum(na.omit(data$fixDur[data$ID == participant & data$eyetrial == trial & data$roiLoc == "BL" & data$window == "early"]))
-    # Prenuclear
-    data.roi$BL_prenuclear[row] <- sum(na.omit(data$fixDur[data$ID == participant & data$eyetrial == trial & data$roiLoc == "BL" & data$window == "prenuclear"]))
-    #  Nuclear
-    data.roi$BL_nuclear[row] <- sum(na.omit(data$fixDur[data$ID == participant & data$eyetrial == trial & data$roiLoc == "BL" & data$window == "nuclear"]))
-    # Adverb
-    data.roi$BL_adverb[row] <- sum(na.omit(data$fixDur[data$ID == participant & data$eyetrial == trial & data$roiLoc == "BL" & data$window == "adverb"]))
+    data.roi$BL_early[row] = sum(na.omit(data$window_early[data$roiLoc == "BL" & data$eyetrial == trial & data$ID == participant])) / fixSum
+    data.roi$BL_prenuclear[row] = sum(na.omit(data$window_prenuc[data$roiLoc == "BL" & data$eyetrial == trial & data$ID == participant])) / fixSum
+    data.roi$BL_nuclear[row] = sum(na.omit(data$window_nuclear[data$roiLoc == "BL" & data$eyetrial == trial & data$ID == participant])) / fixSum
+    data.roi$BL_adverb[row] = sum(na.omit(data$window_adverb[data$roiLoc == "BL" & data$eyetrial == trial & data$ID == participant])) / fixSum
     
-    # Sum of all fixations in the trial
-    fixSum = sum(data.roi[row,3:18])
-    
-    ## Convert the above sums to proportions
-    # TL
-    data.roi$TL_early_prop[row] = data.roi$TL_early[row] / fixSum
-    data.roi$TL_prenuclear_prop[row] = data.roi$TL_prenuclear[row] / fixSum
-    data.roi$TL_nuclear_prop[row] = data.roi$TL_nuclear[row] / fixSum
-    data.roi$TL_adverb_prop[row] = data.roi$TL_adverb[row] / fixSum
+    # NA
+    # Fixations that are not in an ROI, as a proportion of the total fixationd duration
+    data.roi$roi_na[row] = sum(data$fixDur[data$eyetrial == trial & data$ID == participant][is.na(data$roiLoc[data$eyetrial == trial & data$ID == participant])]) / fixSum
 
-    # TR
-    data.roi$TR_early_prop[row] = data.roi$TR_early[row] / fixSum
-    data.roi$TR_prenuclear_prop[row] = data.roi$TR_prenuclear[row] / fixSum
-    data.roi$TR_nuclear_prop[row] = data.roi$TR_nuclear[row] / fixSum
-    data.roi$TR_adverb_prop[row] = data.roi$TR_adverb[row] / fixSum
-    
-    # BR
-    data.roi$BR_early_prop[row] = data.roi$BR_early[row] / fixSum
-    data.roi$BR_prenuclear_prop[row] = data.roi$BR_prenuclear[row] / fixSum
-    data.roi$BR_nuclear_prop[row] = data.roi$BR_nuclear[row] / fixSum
-    data.roi$BR_adverb_prop[row] = data.roi$BR_adverb[row] / fixSum
-    
-    # BL
-    data.roi$BL_early_prop[row] = data.roi$BL_early[row] / fixSum
-    data.roi$BL_prenuclear_prop[row] = data.roi$BL_prenuclear[row] / fixSum
-    data.roi$BL_nuclear_prop[row] = data.roi$BL_nuclear[row] / fixSum
-    data.roi$BL_adverb_prop[row] = data.roi$BL_adverb[row] / fixSum
-    
-    ## Check our work
-    #data.roi$fixSum[row] <- fixSum
-    #data.roi$proSum[row] <- sum(data.roi[row,19:34])
+    # Check our work
+    #data.roi$validate = sum(data.roi[row,3:19])
     
     # Next row
     row = row + 1
   } #/trial
 } #/participant
 
-# todo: join the windows with the main dataset by trial and participant 
+
+## Merge data.roi into data
+data <- merge.data.frame(data, data.roi)
 
 #######################################
 ### Write the output to /processed/ ###
@@ -262,9 +253,8 @@ for (participant in participants){
 # Write the full output
 setwd("../processed/")
 readr::write_csv(data, "ret_processed_stage_2.csv")
-readr::write_csv(data.roi, "ret_processed_roi-windows.csv")
 
 # Cleanup
-rm(datapath, participant, participants, rois, trial, windows)
+rm(data.roi, datapath, participant, participants, trial, fixSum, gaze, lnmk_adverb, lnmk_prenuc, lnmk_referent, row, trialgazes)
 
 # End
