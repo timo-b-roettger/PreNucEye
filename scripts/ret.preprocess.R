@@ -103,7 +103,7 @@ ret.dat$lgerror[ret.dat$key[lgerror]] <- 1
 #######################################
 
 # If no /processed folder, create one
-setwd("../")
+#setwd("../")
 #ifelse(!dir.exists(file.path(getwd(), "../processed/")), dir.create(file.path(getwd())), FALSE)
 
 # Stage 2 uses the df name 'data', so let's prep for that before ending
