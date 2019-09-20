@@ -264,18 +264,25 @@ for (participant in participants){
 
 
 # Sanity check
-data.roi.long <- data.roi %>% 
+data.roi.long.agg <- data.roi %>% 
   gather(window, proportion, 3:19) %>% 
   separate(window, c("position", "window")) %>% 
   group_by(window, ID, eyetrial) %>% 
   summarise(sum = sum(proportion, na.rm = T))
 
 # sum columns should all add up to 1
-sum(data.roi.long$sum == 1, na.rm = T) / nrow(data.roi.long)
-# at 65%
+sum(data.roi.long.agg[data.roi.long.agg$window != "na",]$sum == 1, na.rm = T) / nrow(data.roi.long.agg[data.roi.long.agg$window != "na",])
+# at 80%
+
+# Might be due to windows that do not have any fixation which results in 0s
+sum(data.roi.long.agg[data.roi.long.agg$window != "na",]$sum == 0, na.rm = T) / nrow(data.roi.long.agg[data.roi.long.agg$window != "na",])
+# another 20% (doesn't 100% add up)
 
 ## Merge data.roi into data
-data <- merge.data.frame(data, data.roi)
+data.roi.long <- data.roi %>% 
+  gather(window, proportion, 3:19) %>% 
+  separate(window, c("position", "window")) %>% 
+  full_join(data)
 
 #######################################
 ### Write the output to /processed/ ###
