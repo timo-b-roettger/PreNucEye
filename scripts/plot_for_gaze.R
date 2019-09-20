@@ -21,8 +21,8 @@
 library(tidyverse)
 library(ggbeeswarm)
 library(rstudioapi)
-library(ggpubr)
-library(brms)
+# library(ggpubr)
+
 
 ## Getting the path of your current open file
 datapath = rstudioapi::getActiveDocumentContext()$path 
@@ -30,7 +30,7 @@ setwd(dirname(datapath))
 setwd("../processed/")
 
 ## Load and merge the data with our acoustic landmarks
-# Load processed data (OpenSesame (+ Mouse Tracking) + Eye Tracking)
+# Load processed data
 data <- read_csv("ret_processed_stage_2.csv")
 
 # Load acoustic landmarks
@@ -38,7 +38,16 @@ setwd("../data/")
 landmarks <- read_csv("acoustic_landmarks.csv")
 
 # Join the landmarks and data
-data <- full_join(data, landmarks)
+data <- full_join(data, landmarks) %>% 
+  filter(!is.na(window))
+
+# Order factor levels of window
+data$window <- factor(data$window, levels = c("early", "prenuclear", "nuclear", "adverb"))
+
+# Gather proportional values
+data <- data %>% 
+  gather(response, proportion, 8:11)
+
 
 #################
 ### Aggregate ###
@@ -46,19 +55,27 @@ data <- full_join(data, landmarks)
 
 # aggregate proportions (overall)
 xagg <- data %>% 
-  group_by(Condition, window) %>% 
-  summarise(Target_prop == mean(Target_prop, na.rm = T),
-            SubjComp_prop == mean(SubjComp_prop, na.rm = T),
-            ObjComp_prop == mean(ObjComp_prop, na.rm = T),
-            Distr_prop == mean(Distr_prop, na.rm = T))
+  group_by(Condition, window, response) %>% 
+  summarise(prop = mean(proportion, na.rm = T))
 
+# aggregate proportions (per subject)
 xagg_subj <- data %>% 
-  group_by(Condition, window, ID) %>% 
-  summarise(Target_prop == mean(Target_prop, na.rm = T),
-            SubjComp_prop == mean(SubjComp_prop, na.rm = T),
-            ObjComp_prop == mean(ObjComp_prop, na.rm = T),
-            Distr_prop == mean(Distr_prop, na.rm = T))
+  group_by(Condition, window, ID, response) %>% 
+  summarise(prop = mean(proportion, na.rm = T))
 
+############
+### Plot ###
+############
+
+ggplot(data = xagg_subj, aes(x = window, y = prop, color = response, fill = response)) +
+  geom_line(aes(group = interaction(ID, response)),
+            alpha = 0.2, size = 1) +
+  geom_line(data = xagg, aes(group = interaction(response)),
+            size = 2) +
+  geom_point(alpha = 0.2, size = 2) +
+  geom_point(data = xagg, 
+             size = 3, pch = 21, stroke = 1, color = "black") +
+  facet_grid(~ Condition)
 
 
 
