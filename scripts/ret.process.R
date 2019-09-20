@@ -276,13 +276,50 @@ sum(data.roi.long.agg[data.roi.long.agg$window != "na",]$sum == 1, na.rm = T) / 
 
 # Might be due to windows that do not have any fixation which results in 0s
 sum(data.roi.long.agg[data.roi.long.agg$window != "na",]$sum == 0, na.rm = T) / nrow(data.roi.long.agg[data.roi.long.agg$window != "na",])
-# another 20% (doesn't 100% add up)
+# another 20% (doesn't 100% add up, but for now Im okay with that)
 
 ## Merge data.roi into data
 data.roi.long <- data.roi %>% 
   gather(window, proportion, 3:19) %>% 
   separate(window, c("position", "window")) %>% 
+  spread(-position, proportion) %>% 
+  rename("BL_prop" = BL, 
+         "BR_prop" = BR, 
+         "TL_prop" = TL, 
+         "TR_prop" = TR) %>% 
   full_join(data)
+
+
+# Map proportions onto response categories
+data.roi.long$Target_prop <- ifelse(data.roi.long$Target_pos == "TL_Pic", data.roi.long$TL_prop,
+                             ifelse(data.roi.long$Target_pos == "TR_Pic", data.roi.long$TR_prop,
+                             ifelse(data.roi.long$Target_pos == "BL_Pic", data.roi.long$BL_prop, 
+                             ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$BL_prop, NA))))
+
+data.roi.long$SubjComp_prop <- ifelse(data.roi.long$Target_pos == "TL_Pic", data.roi.long$TR_prop,
+                             ifelse(data.roi.long$Target_pos == "TR_Pic", data.roi.long$BR_prop,
+                             ifelse(data.roi.long$Target_pos == "BL_Pic", data.roi.long$TL_prop, 
+                             ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$BL_prop, NA))))
+
+
+data.roi.long$ObjComp_prop <- ifelse(data.roi.long$Target_pos == "TL_Pic", data.roi.long$BL_prop,
+                              ifelse(data.roi.long$Target_pos == "TR_Pic", data.roi.long$TL_prop, 
+                              ifelse(data.roi.long$Target_pos == "BL_Pic", data.roi.long$BR_prop,
+                              ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$TR_prop, NA))))
+
+data.roi.long$Distr_prop <- ifelse(data.roi.long$Target_pos == "TL_Pic", data.roi.long$BR_prop,
+                            ifelse(data.roi.long$Target_pos == "TR_Pic", data.roi.long$BL_prop,
+                            ifelse(data.roi.long$Target_pos == "BL_Pic", data.roi.long$TR_prop, 
+                            ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$TL_prop, NA))))
+
+# reduce dataframe to something reasonable
+df <- data.roi.long %>% 
+  select(ID, eyetrial, window, Condition,
+         Target_obj, Target_subj,
+         Target_prop, SubjComp_prop, ObjComp_prop, Distr_prop) %>% 
+  # delete all redundant rows
+  distinct()
+
 
 #######################################
 ### Write the output to /processed/ ###
@@ -290,7 +327,7 @@ data.roi.long <- data.roi %>%
 
 # Write the full output
 setwd("../processed/")
-readr::write_csv(data, "ret_processed_stage_2.csv")
+readr::write_csv(df, "ret_processed_stage_2.csv")
 
 # Cleanup
 rm(data.roi, datapath, participant, participants, trial, fixSum, gaze, lnmk_adverb, lnmk_prenuc, lnmk_referent, row, trialgazes, fixDur, fixEnd, fixStart)
