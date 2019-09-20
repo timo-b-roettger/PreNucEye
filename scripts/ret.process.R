@@ -222,42 +222,57 @@ for (participant in participants){
     # Total fixation time for this trial (across all windows and ROIs)
     fixSum = sum(data$fixDur[data$eyetrial == trial & data$ID == participant])
     
+    # TR: Total fixation time for this trial for each window
+    fixSum_early = sum(data$window_early[data$eyetrial == trial & data$ID == participant & !is.na(data$roiLoc)])
+    fixSum_prenuc = sum(data$window_prenuc[data$eyetrial == trial & data$ID == participant & !is.na(data$roiLoc)])
+    fixSum_nuclear = sum(data$window_nuclear[data$eyetrial == trial & data$ID == participant & !is.na(data$roiLoc)])
+    fixSum_adverb = sum(data$window_adverb[data$eyetrial == trial & data$ID == participant & !is.na(data$roiLoc)])
+    
     # By ROI
     # TL
-    data.roi$TL_early[row] = sum(na.omit(data$window_early[data$roiLoc == "TL" & data$eyetrial == trial & data$ID == participant])) / fixSum
-    data.roi$TL_prenuclear[row] = sum(na.omit(data$window_prenuc[data$roiLoc == "TL" & data$eyetrial == trial & data$ID == participant])) / fixSum
-    data.roi$TL_nuclear[row] = sum(na.omit(data$window_nuclear[data$roiLoc == "TL" & data$eyetrial == trial & data$ID == participant])) / fixSum
-    data.roi$TL_adverb[row] = sum(na.omit(data$window_adverb[data$roiLoc == "TL" & data$eyetrial == trial & data$ID == participant])) / fixSum
+    data.roi$TL_early[row] = sum(na.omit(data$window_early[data$roiLoc == "TL" & data$eyetrial == trial & data$ID == participant])) / fixSum_early
+    data.roi$TL_prenuclear[row] = sum(na.omit(data$window_prenuc[data$roiLoc == "TL" & data$eyetrial == trial & data$ID == participant])) / fixSum_prenuc
+    data.roi$TL_nuclear[row] = sum(na.omit(data$window_nuclear[data$roiLoc == "TL" & data$eyetrial == trial & data$ID == participant])) / fixSum_nuclear
+    data.roi$TL_adverb[row] = sum(na.omit(data$window_adverb[data$roiLoc == "TL" & data$eyetrial == trial & data$ID == participant])) / fixSum_adverb
     
     # TR
-    data.roi$TR_early[row] = sum(na.omit(data$window_early[data$roiLoc == "TR" & data$eyetrial == trial & data$ID == participant])) / fixSum
-    data.roi$TR_prenuclear[row] = sum(na.omit(data$window_prenuc[data$roiLoc == "TR" & data$eyetrial == trial & data$ID == participant])) / fixSum
-    data.roi$TR_nuclear[row] = sum(na.omit(data$window_nuclear[data$roiLoc == "TR" & data$eyetrial == trial & data$ID == participant])) / fixSum
-    data.roi$TR_adverb[row] = sum(na.omit(data$window_adverb[data$roiLoc == "TR" & data$eyetrial == trial & data$ID == participant])) / fixSum
+    data.roi$TR_early[row] = sum(na.omit(data$window_early[data$roiLoc == "TR" & data$eyetrial == trial & data$ID == participant])) / fixSum_early
+    data.roi$TR_prenuclear[row] = sum(na.omit(data$window_prenuc[data$roiLoc == "TR" & data$eyetrial == trial & data$ID == participant])) / fixSum_prenuc
+    data.roi$TR_nuclear[row] = sum(na.omit(data$window_nuclear[data$roiLoc == "TR" & data$eyetrial == trial & data$ID == participant])) / fixSum_nuclear
+    data.roi$TR_adverb[row] = sum(na.omit(data$window_adverb[data$roiLoc == "TR" & data$eyetrial == trial & data$ID == participant])) / fixSum_adverb
     
     # BR
-    data.roi$BR_early[row] = sum(na.omit(data$window_early[data$roiLoc == "BR" & data$eyetrial == trial & data$ID == participant])) / fixSum
-    data.roi$BR_prenuclear[row] = sum(na.omit(data$window_prenuc[data$roiLoc == "BR" & data$eyetrial == trial & data$ID == participant])) / fixSum
-    data.roi$BR_nuclear[row] = sum(na.omit(data$window_nuclear[data$roiLoc == "BR" & data$eyetrial == trial & data$ID == participant])) / fixSum
-    data.roi$BR_adverb[row] = sum(na.omit(data$window_adverb[data$roiLoc == "BR" & data$eyetrial == trial & data$ID == participant])) / fixSum
+    data.roi$BR_early[row] = sum(na.omit(data$window_early[data$roiLoc == "BR" & data$eyetrial == trial & data$ID == participant])) / fixSum_early
+    data.roi$BR_prenuclear[row] = sum(na.omit(data$window_prenuc[data$roiLoc == "BR" & data$eyetrial == trial & data$ID == participant])) / fixSum_prenuc
+    data.roi$BR_nuclear[row] = sum(na.omit(data$window_nuclear[data$roiLoc == "BR" & data$eyetrial == trial & data$ID == participant])) / fixSum_nuclear
+    data.roi$BR_adverb[row] = sum(na.omit(data$window_adverb[data$roiLoc == "BR" & data$eyetrial == trial & data$ID == participant])) / fixSum_adverb
     
     # BL
-    data.roi$BL_early[row] = sum(na.omit(data$window_early[data$roiLoc == "BL" & data$eyetrial == trial & data$ID == participant])) / fixSum
-    data.roi$BL_prenuclear[row] = sum(na.omit(data$window_prenuc[data$roiLoc == "BL" & data$eyetrial == trial & data$ID == participant])) / fixSum
-    data.roi$BL_nuclear[row] = sum(na.omit(data$window_nuclear[data$roiLoc == "BL" & data$eyetrial == trial & data$ID == participant])) / fixSum
-    data.roi$BL_adverb[row] = sum(na.omit(data$window_adverb[data$roiLoc == "BL" & data$eyetrial == trial & data$ID == participant])) / fixSum
+    data.roi$BL_early[row] = sum(na.omit(data$window_early[data$roiLoc == "BL" & data$eyetrial == trial & data$ID == participant])) / fixSum_early
+    data.roi$BL_prenuclear[row] = sum(na.omit(data$window_prenuc[data$roiLoc == "BL" & data$eyetrial == trial & data$ID == participant])) / fixSum_prenuc
+    data.roi$BL_nuclear[row] = sum(na.omit(data$window_nuclear[data$roiLoc == "BL" & data$eyetrial == trial & data$ID == participant])) / fixSum_nuclear
+    data.roi$BL_adverb[row] = sum(na.omit(data$window_adverb[data$roiLoc == "BL" & data$eyetrial == trial & data$ID == participant])) / fixSum_adverb
     
     # NA
     # Fixations that are not in an ROI, as a proportion of the total fixationd duration
     data.roi$roi_na[row] = sum(data$fixDur[data$eyetrial == trial & data$ID == participant][is.na(data$roiLoc[data$eyetrial == trial & data$ID == participant])]) / fixSum
-    
+
     # Next row
     row = row + 1
   } #/trial
 } #/participant
 
-# Validate the above (should be 'TRUE')
-sum(data.roi[3:19]) == nrow(data.roi)
+
+# Sanity check
+data.roi.long <- data.roi %>% 
+  gather(window, proportion, 3:19) %>% 
+  separate(window, c("position", "window")) %>% 
+  group_by(window, ID, eyetrial) %>% 
+  summarise(sum = sum(proportion, na.rm = T))
+
+# sum columns should all add up to 1
+sum(data.roi.long$sum == 1, na.rm = T) / nrow(data.roi.long)
+# at 65%
 
 ## Merge data.roi into data
 data <- merge.data.frame(data, data.roi)
