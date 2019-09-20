@@ -67,6 +67,7 @@ xagg_subj <- data %>%
 ### Plot ###
 ############
 
+# Plot aggregated fixations 
 ggplot(data = xagg_subj, aes(x = window, y = prop, color = response, fill = response)) +
   geom_line(aes(group = interaction(ID, response)),
             alpha = 0.2, size = 1) +
@@ -76,6 +77,8 @@ ggplot(data = xagg_subj, aes(x = window, y = prop, color = response, fill = resp
   geom_point(data = xagg, 
              size = 3, pch = 21, stroke = 1, color = "black") +
   facet_grid(~ Condition)
+
+# Plot fixations as developing over time
 
 
 
