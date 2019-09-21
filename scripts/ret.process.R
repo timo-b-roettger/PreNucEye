@@ -328,7 +328,7 @@ data.roi.long$GivenSubj_prop <- ifelse(data.roi.long$Condition == "CG",
                                 ifelse(data.roi.long$Condition == "GC", 
                                        data.roi.long$Target_prop + data.roi.long$ObjComp_prop,
                                 ifelse(data.roi.long$Condition == "GG", 
-                                       data.roi.long$Target_prop + data.roi.long$ObjComp_prop, "NOPE"
+                                       data.roi.long$Target_prop + data.roi.long$ObjComp_prop, 0
                                 )))
 
 data.roi.long$GivenObj_prop <- ifelse(data.roi.long$Condition == "CG", 
@@ -336,8 +336,10 @@ data.roi.long$GivenObj_prop <- ifelse(data.roi.long$Condition == "CG",
                                ifelse(data.roi.long$Condition == "GC", 
                                       data.roi.long$ObjComp_prop + data.roi.long$Distr_prop,
                                ifelse(data.roi.long$Condition == "GG", 
-                                       data.roi.long$Target_prop + data.roi.long$SubjComp_prop, "NOPE"
+                                       data.roi.long$Target_prop + data.roi.long$SubjComp_prop, 0
                                              )))
+
+## something doesn't work here. None of the vectors should contain values larger than 1!
 
 # reduce dataframe to something reasonable
 df <- data.roi.long %>% 

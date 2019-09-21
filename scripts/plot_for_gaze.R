@@ -195,7 +195,7 @@ ggsave(filename = "Fix_agg_2responses.pdf",
        dpi = 300)
 
 
-# Same with facetted response for better overview
+# Same with facetted response for better overview: 2 responses
 Fix_agg_4responses_facet <- 
   ggplot(data = xagg_subj[!xagg_subj$response %in%  c("Given Object", "Given Subject"),], aes(x = window, y = prop, color = response, fill = response)) +
   geom_segment(x = -Inf, y = 0.25, xend = Inf, yend = 0.25,
@@ -244,12 +244,6 @@ ggsave(filename = "Fix_agg_4responses_facet.pdf",
        units = "mm",
        #bg = "transparent",
        dpi = 300)
-
-
-
-
-
-
 
 # Plot fixations as developing over time
 ggplot(data = data, aes(x = eyetrial, y = proportion, color = response, fill = response)) +
