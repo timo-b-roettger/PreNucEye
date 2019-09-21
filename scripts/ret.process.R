@@ -304,13 +304,12 @@ data.roi.long <- data.roi %>%
 data.roi.long$Target_prop <- ifelse(data.roi.long$Target_pos == "TL_Pic", data.roi.long$TL_prop,
                              ifelse(data.roi.long$Target_pos == "TR_Pic", data.roi.long$TR_prop,
                              ifelse(data.roi.long$Target_pos == "BL_Pic", data.roi.long$BL_prop, 
-                             ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$BL_prop, NA))))
+                             ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$BR_prop, NA))))
 
 data.roi.long$SubjComp_prop <- ifelse(data.roi.long$Target_pos == "TL_Pic", data.roi.long$TR_prop,
                              ifelse(data.roi.long$Target_pos == "TR_Pic", data.roi.long$BR_prop,
                              ifelse(data.roi.long$Target_pos == "BL_Pic", data.roi.long$TL_prop, 
                              ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$BL_prop, NA))))
-
 
 data.roi.long$ObjComp_prop <- ifelse(data.roi.long$Target_pos == "TL_Pic", data.roi.long$BL_prop,
                               ifelse(data.roi.long$Target_pos == "TR_Pic", data.roi.long$TL_prop, 
@@ -338,9 +337,6 @@ data.roi.long$GivenObj_prop <- ifelse(data.roi.long$Condition == "CG",
                                ifelse(data.roi.long$Condition == "GG", 
                                        data.roi.long$Target_prop + data.roi.long$SubjComp_prop, 0
                                              )))
-
-## TR: something doesn't work here. None of the vectors should contain values larger than 1!
-##     GivenObj_prop does though for "CG" anc "GG". Where is the error?
 
 # reduce dataframe to something reasonable
 df <- data.roi.long %>% 

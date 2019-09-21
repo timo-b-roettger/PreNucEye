@@ -60,7 +60,13 @@ data <- data %>%
          Condition = as.factor(Condition),
          Condition = fct_recode(Condition, `Subject accent` = "CG",
                                 `Object accent` = "GC",
-                                `Accent on both` =  "GG"))
+                                `Accent on both` =  "GG"),
+         # bin eyetrials into four categories
+         trial_bin = ifelse(eyetrial < 41, 1,
+                     ifelse(eyetrial >= 41 & eyetrial < 65, 2, 
+                     ifelse(eyetrial >= 65 & eyetrial < 89, 3,
+                     ifelse(eyetrial >= 89, 4, "error"))))
+         )
          
 #################
 ### Aggregate ###
@@ -74,6 +80,16 @@ xagg_subj <- data %>%
 # aggregate proportions (overall)
 xagg <- xagg_subj %>% 
   group_by(Condition, window, response) %>% 
+  summarise(prop = mean(prop, na.rm = T))
+
+# aggregate proportions (per subject and trial_bin)
+xagg_subj_trialBin <- data %>% 
+  group_by(Condition, window, ID, response, trial_bin) %>% 
+  summarise(prop = mean(proportion, na.rm = T))
+
+# aggregate proportions (trial_bin)
+xagg_trialBin <- xagg_subj_trialBin %>% 
+  group_by(Condition, window, response, trial_bin) %>% 
   summarise(prop = mean(prop, na.rm = T))
 
 # aggregate over trials
@@ -245,12 +261,70 @@ ggsave(filename = "Fix_agg_4responses_facet.pdf",
        #bg = "transparent",
        dpi = 300)
 
-# Plot fixations as developing over time
-ggplot(data = data, aes(x = eyetrial, y = proportion, color = response, fill = response)) +
+
+# Plot aggregated fixations for Given Subject and Given Object as a function of trial bin
+Fix_agg_2responses_trialBin <- 
+  ggplot(data = xagg_subj_trialBin[xagg_subj_trialBin$response %in%  c("Given Object", "Given Subject"),], 
+         aes(x = window, y = prop, color = response, fill = response)) +
+  geom_segment(x = -Inf, y = 0.5, xend = Inf, yend = 0.5,
+               lty = "dashed", size = 1, colour = "black") +
+  geom_line(aes(group = interaction(ID, response)),
+            alpha = 0.2, size = 1) +
+  geom_line(data = xagg_trialBin[xagg_trialBin$response %in%  c("Given Object", "Given Subject"),], aes(group = interaction(response)),
+            size = 2) +
+  geom_point(alpha = 0.2, size = 2) +
+  geom_point(data = xagg_trialBin[xagg_trialBin$response %in%  c("Given Object", "Given Subject"),], 
+             size = 3, pch = 21, stroke = 1, color = "black") +
+  facet_grid(trial_bin~ Condition) +
+  scale_colour_manual(values = c(ObjCompCol, TargetCol)) +
+  scale_fill_manual(values = c(ObjCompCol, TargetCol)) +
+  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(0,1)) +
+  labs(title = "Proportion of looks across conditions and windows",
+       subtitle = "semitransparent points and lines represent individual participants\n",
+       y = "Proportion of fixation duration\n",
+       x = "\nTime window"
+  ) +
+  theme_classic() + 
+  theme(legend.position = "right",
+        legend.key.height = unit(2,"line"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 16),
+        legend.background = element_rect(fill = "transparent"),
+        strip.background = element_blank(),
+        strip.text = element_text(size = 16),
+        panel.spacing = unit(2, "lines"),
+        plot.background = element_rect(fill = "transparent", colour = NA),
+        panel.background = element_rect(fill = "transparent"),
+        axis.line.x = element_blank(),
+        axis.text.x = element_text(size = 16, angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 16),
+        axis.title = element_text(size = 16, face = "bold"),
+        plot.title = element_text(size = 16, face = "bold"),
+        plot.margin = unit(c(1,1,1,1),"cm"))
+
+# store plot 
+setwd("../plots/")
+ggsave(filename = "Fix_agg_2responses_trialBin.pdf",
+       plot = Fix_agg_2responses_trialBin,
+       device = "pdf",
+       width = 290, 
+       height = 600,
+       units = "mm",
+       #bg = "transparent",
+       dpi = 300)
+
+
+
+
+# Plot fixations as developing over time (ugly, but good so quickly assess)
+ggplot(data = data[!data$response %in%  c("Given Object", "Given Subject"),], aes(x = eyetrial, y = proportion, color = response, fill = response)) +
   geom_line(aes(group = interaction(ID, response)), alpha = 0.1) +
-  geom_smooth(data = xagg_trials, aes(y = prop, group = response)) +
+  geom_smooth(data = xagg_trials[!xagg_trials$response %in%  c("Given Object", "Given Subject"),], aes(y = prop, group = response)) +
   facet_grid(window ~ Condition)
               
-
+ggplot(data = data[data$response %in%  c("Given Object", "Given Subject"),], aes(x = eyetrial, y = proportion, color = response, fill = response)) +
+  geom_line(aes(group = interaction(ID, response)), alpha = 0.1) +
+  geom_smooth(data = xagg_trials[xagg_trials$response %in%  c("Given Object", "Given Subject"),], aes(y = prop, group = response)) +
+  facet_grid(window ~ Condition)
 
 
