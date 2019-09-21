@@ -63,6 +63,11 @@ xagg_subj <- data %>%
   group_by(Condition, window, ID, response) %>% 
   summarise(prop = mean(proportion, na.rm = T))
 
+# aggregate over trials
+xagg_trials <- data %>% 
+  group_by(Condition, window, response, eyetrial) %>% 
+  summarise(prop = mean(proportion, na.rm = T))
+
 ############
 ### Plot ###
 ############
@@ -79,7 +84,11 @@ ggplot(data = xagg_subj, aes(x = window, y = prop, color = response, fill = resp
   facet_grid(~ Condition)
 
 # Plot fixations as developing over time
-
+ggplot(data = data, aes(x = eyetrial, y = proportion, color = response, fill = response)) +
+  geom_line(aes(group = interaction(ID, response)), alpha = 0.1) +
+  geom_smooth(data = xagg_trials, aes(y = prop, group = response)) +
+  facet_grid(window ~ Condition)
+              
 
 
 
