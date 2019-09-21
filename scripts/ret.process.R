@@ -36,6 +36,12 @@ data <- read_csv("ret_processed_stage_1.csv")
 setwd("../data/")
 landmarks <- read_csv("acoustic_landmarks.csv")
 
+# Add 200ms to landmarks as saccade initiation time
+landmarks <- landmarks %>% 
+  mutate(prenuclear_onset = prenuclear_onset + 200,
+         referent_onset = referent_onset + 200,
+         adverb_onset = adverb_onset + 200)
+
 # Join the landmarks and data
 data <- full_join(data, landmarks)
 
