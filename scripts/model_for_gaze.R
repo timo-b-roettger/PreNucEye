@@ -38,8 +38,12 @@ data <- data %>%
   mutate(window = factor(window, levels = c("early", "prenuclear", "nuclear", "adverb"))) %>% 
   # generate binary preference score
   mutate(subj_preference = ifelse(((Target_prop + ObjComp_prop) / 2) > ((SubjComp_prop + Distr_prop) / 2), 1, 0),
-         obj_preference = ifelse(((Target_prop + SubjComp_prop) / 2) > ((ObjComp_prop + Distr_prop) / 2), 1, 0))
+         obj_preference = ifelse(((Target_prop + SubjComp_prop) / 2) > ((ObjComp_prop + Distr_prop) / 2), 1, 0),
+         # centralize eyetrial
+         eyetrial.c = scale(eyetrial, scale = F))
          
+
+
 #############
 ### Model ###
 #############
@@ -48,31 +52,32 @@ data <- data %>%
 priors_gaze <- c(
   prior(student_t(5, 0, 2), class = Intercept),
   prior(student_t(5, 0, 2), class = b),
+  prior(student_t(5, 0, 2), class = b),
   prior(student_t(4, 0, 2), class = sd),
   prior(student_t(4, 0, 2), class = sigma),
   prior(lkj(2), class = cor)
 )
 
 # model subject preference
-xmdl <- brm(subj_preference ~ Condition * window + 
+xmdl <- brm(subj_preference ~ Condition * window * trial + 
               # specify maximal model for now
-              (1 + Condition * window | ID) + 
+              (1 + Condition * window * trial | ID) + 
               (1 + Condition * window | Target_obj),
             family = "bernoulli", 
             chains = 4,
-            iter = 1000,
+            iter = 2000,
             cores = 2,
             control = list(adapt_delta = 0.99),
             data = data)
 
 # model object preference
-xmdl <- brm(obj_preference ~ Condition * window + 
+xmdl <- brm(obj_preference ~ Condition * window * trial + 
               # specify maximal model for now
-              (1 + Condition * window | ID) + 
+              (1 + Condition * window * trial | ID) + 
               (1 + Condition * window | Target_obj),
             family = "bernoulli", 
             chains = 4,
-            iter = 1000,
+            iter = 2000,
             cores = 2,
             control = list(adapt_delta = 0.99),
             data = data)

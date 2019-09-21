@@ -322,11 +322,29 @@ data.roi.long$Distr_prop <- ifelse(data.roi.long$Target_pos == "TL_Pic", data.ro
                             ifelse(data.roi.long$Target_pos == "BL_Pic", data.roi.long$TR_prop, 
                             ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$TL_prop, NA))))
 
+# maybe useful to actually code them as being given or contrastive
+data.roi.long$GivenSubj_prop <- ifelse(data.roi.long$Condition == "CG", 
+                                       data.roi.long$SubjComp_prop + data.roi.long$Distr_prop,
+                                ifelse(data.roi.long$Condition == "GC", 
+                                       data.roi.long$Target_prop + data.roi.long$ObjComp_prop,
+                                ifelse(data.roi.long$Condition == "GG", 
+                                       data.roi.long$Target_prop + data.roi.long$ObjComp_prop, "NOPE"
+                                )))
+
+data.roi.long$GivenObj_prop <- ifelse(data.roi.long$Condition == "CG", 
+                                      data.roi.long$Target_prop + data.roi.long$SubjComp_prop,
+                               ifelse(data.roi.long$Condition == "GC", 
+                                      data.roi.long$ObjComp_prop + data.roi.long$Distr_prop,
+                               ifelse(data.roi.long$Condition == "GG", 
+                                       data.roi.long$Target_prop + data.roi.long$SubjComp_prop, "NOPE"
+                                             )))
+
 # reduce dataframe to something reasonable
 df <- data.roi.long %>% 
   select(ID, eyetrial, window, Condition, sum,
          Target_obj, Target_subj,
-         Target_prop, SubjComp_prop, ObjComp_prop, Distr_prop) %>% 
+         Target_prop, SubjComp_prop, ObjComp_prop, Distr_prop,
+         GivenSubj_prop, GivenObj_prop) %>% 
   # delete all redundant rows
   distinct()
 
