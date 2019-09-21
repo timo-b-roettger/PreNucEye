@@ -308,12 +308,10 @@ ggsave(filename = "Fix_agg_2responses_trialBin.pdf",
        plot = Fix_agg_2responses_trialBin,
        device = "pdf",
        width = 290, 
-       height = 600,
+       height = 400,
        units = "mm",
        #bg = "transparent",
        dpi = 300)
-
-
 
 
 # Plot fixations as developing over time (ugly, but good so quickly assess)
