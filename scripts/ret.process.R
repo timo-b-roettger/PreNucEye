@@ -49,27 +49,6 @@ rm(landmarks)
 ### Describe ROIs ###
 #####################
 
-## How long was the fixation?
-data$fixDur <- data$entime - data$sttime
-
-# Encode ROI location for intuitive matching later
-data$roiLoc = NA
-data$roiLoc[data$roi_1 == 1] <- "TL"
-data$roiLoc[data$roi_2 == 1] <- "TR"
-data$roiLoc[data$roi_3 == 1] <- "BL"
-data$roiLoc[data$roi_4 == 1] <- "BR"
-
-# Reduce data (from over 300 variables) and look only at test trials
-data <- data %>% 
-  select(eyetrial, ID, BL_Pic, BR_Pic, TL_Pic, TR_Pic, 
-         Comp_obj, Comp_obj_pic, Comp_obj_pos, 
-         Comp_subj, Comp_subj_pic, Comp_subj_pos,
-         Condition, fixDur,First_obj, First_subj, First_pic, First_sound,
-         Target_obj, Target_subj, Target_pos, sttime, entime,
-         fixDur, prenuclear_onset, referent_onset, adverb_onset, roiLoc
-  ) %>% 
-  filter(Condition %in% c("CG", "GG", "GC"))
-
 # Identify the role of each ROI
 data$fixTarget <- ifelse(data$Target_pos == "TL_Pic" & data$roiLoc == "TL", 1, 
                          ifelse(data$Target_pos == "TR_Pic" & data$roiLoc == "TR", 1, 
