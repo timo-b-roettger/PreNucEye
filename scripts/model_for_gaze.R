@@ -21,6 +21,7 @@
 library(tidyverse)
 library(ggbeeswarm)
 library(rstudioapi)
+library(brms)
 # library(ggpubr)
 
 
@@ -35,13 +36,17 @@ data <- read_csv("ret_processed_stage_2.csv")
 # Join the landmarks and data
 data <- data %>% 
   filter(!is.na(window)) %>% 
+  # exclusion
+  filter(excludeTriggerError = 0,
+         excludeRefError = 0, 
+         excludeLargeError = 0,
+         lgerror = 0) %>% 
   mutate(window = factor(window, levels = c("early", "prenuclear", "nuclear", "adverb"))) %>% 
   # generate binary preference score
   mutate(subj_preference = ifelse(((Target_prop + ObjComp_prop) / 2) > ((SubjComp_prop + Distr_prop) / 2), 1, 0),
          obj_preference = ifelse(((Target_prop + SubjComp_prop) / 2) > ((ObjComp_prop + Distr_prop) / 2), 1, 0),
          # centralize eyetrial
          eyetrial.c = scale(eyetrial, scale = F))
-         
 
 
 #############
@@ -59,21 +64,23 @@ priors_gaze <- c(
 )
 
 # model subject preference
-xmdl <- brm(subj_preference ~ Condition * window * trial + 
+xmdl <- brm(subj_preference ~ Condition * window  + 
               # specify maximal model for now
-              (1 + Condition * window * trial | ID) + 
+              (1 + Condition * window | ID) + 
               (1 + Condition * window | Target_obj),
             family = "bernoulli", 
-            chains = 4,
-            iter = 2000,
+            #chains = 4,
+            #iter = 2000,
+            chains = 2,
+            iter = 1000,
             cores = 2,
             control = list(adapt_delta = 0.99),
             data = data)
 
 # model object preference
-xmdl <- brm(obj_preference ~ Condition * window * trial + 
+xmdl <- brm(obj_preference ~ Condition * window * eyetrial.c + 
               # specify maximal model for now
-              (1 + Condition * window * trial | ID) + 
+              (1 + Condition * window * eyetrial.c | ID) + 
               (1 + Condition * window | Target_obj),
             family = "bernoulli", 
             chains = 4,

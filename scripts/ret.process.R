@@ -43,13 +43,74 @@ landmarks <- landmarks %>%
          adverb_onset = adverb_onset + 200)
 
 # Join the landmarks and data
-data <- full_join(data, landmarks)
+data <- full_join(data, landmarks) %>% 
+  # exclude Training
+  filter(Condition != "Training1",
+         Condition != "Training2")
 
 # Check our work
 table(data$Condition, data$ID)
 
 # Drop landmarks
 rm(landmarks)
+
+##########################
+### Exclusion criteria ###
+##########################
+
+## exclude if subject made error for trigger sentences in more than 10% of all trials
+data$correctTrigger <- ifelse(data$response_mt_maintrack_1st_02 == data$First_pic, 1, 0)
+
+# how many errors overall?
+100 - round(((sum(data$correctTrigger) / nrow(data)) * 100), digits = 2)
+
+# calculate correct responses for subjects
+triggerError_table <- data %>%
+    group_by(ID) %>%
+    summarise(triggerErrorRate = 100 - round(((sum(correctTrigger) / length(correctTrigger)) * 100), digits = 2)) 
+
+print(tbl_df(triggerError_table), n = 50)
+
+# check for 10% errors per subject and mark them
+TriggerErrorID = c("999")
+data$excludeTriggerError <- 0
+data$excludeTriggerError[data$ID %in% TriggerErrorID] <- 1
+
+## exclude if subject clicked wrong "referent" (sentence object) for test sentences in more than 10% of all trials
+data$correctReferent <- ifelse(data$response_mt_maintrack_2nd_02 == data$Comp_obj_pic |
+                               data$response_mt_maintrack_2nd_02 == data$Distractor_pic, 0, 1)
+
+# how many errors overall?
+100 - round(((sum(data$correctReferent) / nrow(data)) * 100), digits = 2)
+
+# calculate correct responses for subjects
+ReferentError_table <- data %>%
+  group_by(ID) %>%
+  summarise(RefErrorRate = 100 - round(((sum(correctReferent) / length(correctReferent)) * 100), digits = 2)) 
+
+print(tbl_df(ReferentError_table), n = 50)
+
+# check for 10% errors per subject and mark them
+ReferentErrorID = c("999")
+data$excludeRefError <- 0
+data$excludeRefError[data$ID %in% ReferentErrorID] <- 1
+
+## exclude if eytracker encountered "large error" in more than 10% of all trials of a subject 
+# how many errors overall?
+round(((sum(data$lgerror) / nrow(data)) * 100), digits = 2)
+
+# calculate correct responses for subjects
+LargeError_table <- data %>%
+  group_by(ID) %>%
+  summarise(LargeErrorRate = round(((sum(lgerror) / length(lgerror)) * 100), digits = 2)) 
+
+print(tbl_df(LargeError_table), n = 50)
+
+# check for 10% errors per subject and mark them
+LargeErrorID = c("")
+data$excludeLargeError <- 0
+data$excludeLargeError[data$ID %in% LargeErrorID] <- 1
+
 
 #####################
 ### Describe ROIs ###

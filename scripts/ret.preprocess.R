@@ -121,11 +121,14 @@ data$roiLoc[data$roi_4 == 1] <- "BR"
 # Reduce data (from over 300 variables) and look only at test trials
 data <- data %>% 
   select(eyetrial, ID, BL_Pic, BR_Pic, TL_Pic, TR_Pic, 
-         Comp_obj, Comp_obj_pic, Comp_obj_pos, 
+         Comp_obj, Comp_obj_pic, Comp_obj_pos,
          Comp_subj, Comp_subj_pic, Comp_subj_pos,
          Condition, fixDur, First_obj, First_subj, First_pic, First_sound,
          Target_obj, Target_subj, Target_pos, sttime, entime,
-         fixDur, roiLoc
+         fixDur, roiLoc, Distractor_pos, Distractor_pic,
+         Condition, fixDur,First_obj, First_subj, First_pic, First_sound,
+         Target_obj, Target_subj, Target_pos, sttime, entime,
+         fixDur, roiLoc, lgerror, response_mt_maintrack_1st_02, response_mt_maintrack_2nd_02, First_pic
   ) %>% 
   filter(Condition %in% c("CG", "GG", "GC"))
 
@@ -143,5 +146,6 @@ rm(beh, ret, ret.dat, datapath, lgerror, multmerge)
 # Write the full output
 setwd("../processed/")
 readr::write_csv(data, "ret_processed_stage_1.csv")
+
 
 # Done

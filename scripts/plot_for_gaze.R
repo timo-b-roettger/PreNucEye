@@ -23,7 +23,6 @@ library(ggbeeswarm)
 library(rstudioapi)
 # library(ggpubr)
 
-
 ## Getting the path of your current open file
 datapath = rstudioapi::getActiveDocumentContext()$path 
 setwd(dirname(datapath))
@@ -40,6 +39,13 @@ landmarks <- read_csv("acoustic_landmarks.csv")
 # Join the landmarks and data
 data <- full_join(data, landmarks) %>% 
   filter(!is.na(window))
+
+# exclusion
+data <- data %>% 
+  filter(excludeTriggerError = 0,
+         excludeRefError = 0, 
+         excludeLargeError = 0,
+         lgerror = 0)
 
 # Order factor levels of window
 data$window <- factor(data$window, levels = c("early", "prenuclear", "nuclear", "adverb"))
