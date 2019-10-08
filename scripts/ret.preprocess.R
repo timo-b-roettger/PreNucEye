@@ -48,8 +48,14 @@ setwd("../raw_edf/")
 ret = itrackr(path = paste0(getwd(),"/"), pattern = '*.edf')
 
 # Read the beh data all at once
+
+# multmerge() courtesy https://stackoverflow.com/questions/30242065/trying-to-merge-multiple-csv-files-in-r
+multmerge = function(path){
+  filenames=list.files(path=path, full.names=TRUE)
+  rbindlist(lapply(filenames, fread))
+}
 setwd("../raw_OSfiles/")
-beh = rbindlist(lapply(list.files(pattern="*.csv"), fread), fill = TRUE)
+beh = multmerge(getwd())
 
 ##################################
 ### Regions of Interest (ROIs) ###
@@ -117,9 +123,9 @@ data <- data %>%
   select(eyetrial, ID, BL_Pic, BR_Pic, TL_Pic, TR_Pic, 
          Comp_obj, Comp_obj_pic, Comp_obj_pos, 
          Comp_subj, Comp_subj_pic, Comp_subj_pos,
-         Condition, fixDur,First_obj, First_subj, First_pic, First_sound,
+         Condition, fixDur, First_obj, First_subj, First_pic, First_sound,
          Target_obj, Target_subj, Target_pos, sttime, entime,
-         fixDur, prenuclear_onset, referent_onset, adverb_onset, roiLoc
+         fixDur, roiLoc
   ) %>% 
   filter(Condition %in% c("CG", "GG", "GC"))
 
@@ -132,10 +138,10 @@ data <- data %>%
 #ifelse(!dir.exists(file.path(getwd(), "../processed/")), dir.create(file.path(getwd())), FALSE)
 
 # Cleanup
-rm(beh, ret, ret.dat, datapath, lgerror)
+rm(beh, ret, ret.dat, datapath, lgerror, multmerge)
 
 # Write the full output
 setwd("../processed/")
-#readr::write_csv(data, "ret_processed_stage_1.csv") # Optional step
+readr::write_csv(data, "ret_processed_stage_1.csv")
 
 # Done

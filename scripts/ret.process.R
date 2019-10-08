@@ -13,7 +13,7 @@
 ##          proportions of duration per ROI, ROI image and role (i.e. target), and adds other columns to
 ##          facilitate analysis.
 #
-## Version: 9/19/2019
+## Version: 10/8/2019
 #
 #############
 ### Setup ###
@@ -336,6 +336,6 @@ setwd("../processed/")
 readr::write_csv(df, "ret_processed_stage_2.csv")
 
 # Cleanup
-rm(data.roi, datapath, participant, participants, trial, fixSum, gaze, lnmk_adverb, lnmk_prenuc, lnmk_referent, row, trialgazes, fixDur, fixEnd, fixStart)
+rm(data.roi, datapath, participant, participants, trial, fixSum, gaze, lnmk_adverb, lnmk_prenuc, lnmk_referent, row, trialgazes, fixDur, fixEnd, fixStart, fixSum_adverb, fixSum_early, fixSum_nuclear, fixSum_prenuc, data.roi.long, data.roi.long.agg, data)
 
 # End
