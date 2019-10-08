@@ -1593,7 +1593,7 @@ ID,eyetrial,window,Condition,sum,Target_obj,Target_subj,Target_prop,SubjComp_pro
 6,112,early,GG,1,bagel,lion,0,1,0,0,0,1
 6,112,nuclear,GG,1,bagel,lion,0.3711340206185567,0.6288659793814433,0,0,0.3711340206185567,1
 6,112,prenuclear,GG,1,bagel,lion,0,1,0,0,0,1
-4,101,NA,CG,NA,cabbage,zebra,NA,NA,NA,NA,NA,NA
-6,109,NA,CG,NA,brownie,lion,NA,NA,NA,NA,NA,NA
 5,54,NA,GG,NA,melon,lion,NA,NA,NA,NA,NA,NA
 5,57,NA,GG,NA,cabbage,lion,NA,NA,NA,NA,NA,NA
+4,101,NA,CG,NA,cabbage,zebra,NA,NA,NA,NA,NA,NA
+6,109,NA,CG,NA,brownie,lion,NA,NA,NA,NA,NA,NA
