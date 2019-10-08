@@ -52,7 +52,7 @@ ret = itrackr(path = paste0(getwd(),"/"), pattern = '*.edf')
 # multmerge() courtesy https://stackoverflow.com/questions/30242065/trying-to-merge-multiple-csv-files-in-r
 multmerge = function(path){
   filenames=list.files(path=path, full.names=TRUE)
-  rbindlist(lapply(filenames, fread))
+  rbindlist(lapply(filenames, fread), fill = TRUE)
 }
 setwd("../raw_OSfiles/")
 beh = multmerge(getwd())
