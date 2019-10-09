@@ -8,3 +8,4 @@ raw_beh/ret_beh.csv
 processed/ret_processed_stage_1.csv
 processed/ret_processed_stage_2.csv
 plots/
+.DS_Store
