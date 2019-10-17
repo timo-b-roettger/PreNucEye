@@ -13,7 +13,7 @@
 ##          proportions of duration per ROI, ROI image and role (i.e. target), and adds other columns to
 ##          facilitate analysis.
 #
-## Version: 10/8/2019
+## Version: 10/17/2019
 #
 #############
 ### Setup ###
@@ -318,7 +318,6 @@ for (participant in participants){
     row = row + 1
   } #/trial
 } #/participant
-
 
 # Sanity check
 data.roi.long.agg <- data.roi %>% 
