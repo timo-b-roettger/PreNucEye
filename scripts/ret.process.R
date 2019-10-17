@@ -175,6 +175,9 @@ for (participant in participants){
   } #/trial
 } #/participant
 
+## In rare cases, the eyetracker will not write interpretable fixation times. Remove them.
+data = data[-which(is.na(data$fixDur)),]
+
 ## Separate fixation duration by acoustic landmark into windows
 # Loop all gazes, grouping by participant and trial
 
@@ -188,7 +191,7 @@ for (participant in participants){
     # By gaze
     trialgazes = which(data$ID == participant & data$eyetrial == trial)
     for (gaze in trialgazes){
-      
+  
       # Retreive acoustic onsets for this trial
       lnmk_prenuc = data$prenuclear_onset[gaze]
       lnmk_referent = data$referent_onset[gaze]
