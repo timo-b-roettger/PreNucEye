@@ -91,7 +91,7 @@ ReferentError_table <- data %>%
 print(tbl_df(ReferentError_table), n = 50)
 
 # check for 10% errors per subject and mark them
-ReferentErrorID = c("999")
+ReferentErrorID = c("")
 data$excludeRefError <- 0
 data$excludeRefError[data$ID %in% ReferentErrorID] <- 1
 
