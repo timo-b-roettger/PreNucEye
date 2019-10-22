@@ -112,13 +112,24 @@ data$excludeLargeError <- 0
 data$excludeLargeError[data$ID %in% LargeErrorID] <- 1
 
 
-#####################
-### Exclusions ###
-#####################
+#########################
+### Survey Exclusions ###
+#########################
+
+### Self-Reported Challenges
+## Vision    4, 18
+## Hearing   -
+## Reading  10, 18
+## Learning  4, 10, 24
 
 # Exclude by participant ID
-## 999 is assigned to rows where there's a merge error (OS artifact)
-data <- data[ which(data$ID != c(999)), ]
+excluded_IDs = c(4, 10, 18, 24)
+
+# Filter all rows from excluded participants
+data = subset(data, ID != excluded_IDs)
+
+# How many obs by non-filtered participant?
+paste0("There are ", length(unique(data$ID)), " participants: ", paste(unique(data$ID), collapse=', ' ), ".")
 
 #####################
 ### Describe ROIs ###
@@ -333,6 +344,8 @@ sum(data.roi.long.agg[data.roi.long.agg$window != "na",]$sum == 1, na.rm = T) / 
 # Might be due to windows that do not have any fixation which results in 0s
 sum(data.roi.long.agg[data.roi.long.agg$window != "na",]$sum == 0, na.rm = T) / nrow(data.roi.long.agg[data.roi.long.agg$window != "na",])
 # another 20% (doesn't exactly add up to 100, but probs rounding errors)
+
+#rowid_to_column(data.roi, var = "rowid")
 
 ## Merge data.roi into data
 data.roi.long <- data.roi %>% 
