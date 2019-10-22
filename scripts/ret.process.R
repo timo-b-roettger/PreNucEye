@@ -111,7 +111,6 @@ LargeErrorID = c("")
 data$excludeLargeError <- 0
 data$excludeLargeError[data$ID %in% LargeErrorID] <- 1
 
-
 #########################
 ### Survey Exclusions ###
 #########################
@@ -125,11 +124,9 @@ data$excludeLargeError[data$ID %in% LargeErrorID] <- 1
 # Exclude by participant ID
 excluded_IDs = c(4, 10, 18, 24)
 
-# Filter all rows from excluded participants
-data = subset(data, ID != excluded_IDs)
-
-# How many obs by non-filtered participant?
-paste0("There are ", length(unique(data$ID)), " participants: ", paste(unique(data$ID), collapse=', ' ), ".")
+# Mark all rows from excluded participants
+data$surveyExclude = 0
+data$surveyExclude[which(data$ID %in% excluded_IDs)] <- 1
 
 #####################
 ### Describe ROIs ###
@@ -345,18 +342,17 @@ sum(data.roi.long.agg[data.roi.long.agg$window != "na",]$sum == 1, na.rm = T) / 
 sum(data.roi.long.agg[data.roi.long.agg$window != "na",]$sum == 0, na.rm = T) / nrow(data.roi.long.agg[data.roi.long.agg$window != "na",])
 # another 20% (doesn't exactly add up to 100, but probs rounding errors)
 
-#rowid_to_column(data.roi, var = "rowid")
 
 ## Merge data.roi into data
 data.roi.long <- data.roi %>% 
   gather(window, proportion, 3:19) %>%
   separate(window, c("position", "window")) %>%
   full_join(data.roi.long.agg) %>% 
-  spread(position, proportion) %>% 
-  rename("BL_prop" = BL,
-         "BR_prop" = BR,
-         "TL_prop" = TL,
-         "TR_prop" = TR,) %>% 
+  spread(position, proportion) #%>% # Error here -DT
+  # rename("BL_prop" = BL,
+  #        "BR_prop" = BR,
+  #        "TL_prop" = TL,
+  #        "TR_prop" = TR,) %>%
   # delete irrelevant rows
   filter(window != "na",
          sum != 0) %>% 
@@ -420,7 +416,7 @@ setwd("../processed/")
 readr::write_csv(df, "ret_processed_stage_2.csv")
 
 # Cleanup
-rm(data.roi, datapath, participant, participants, trial, fixSum, gaze, lnmk_adverb, lnmk_prenuc, lnmk_referent, row, trialgazes, fixDur, fixEnd, fixStart, fixSum_adverb, fixSum_early, fixSum_nuclear, fixSum_prenuc, data.roi.long.agg, data, data.roi.long, LargeError_table, ReferentError_table, triggerError_table, LargeErrorID, ReferentErrorID, TriggerErrorID)
+rm(data.roi, datapath, participant, participants, trial, fixSum, gaze, lnmk_adverb, lnmk_prenuc, lnmk_referent, row, trialgazes, fixDur, fixEnd, fixStart, fixSum_adverb, fixSum_early, fixSum_nuclear, fixSum_prenuc, data.roi.long.agg, data, data.roi.long, LargeError_table, ReferentError_table, triggerError_table, LargeErrorID, ReferentErrorID, TriggerErrorID, surveyExclude)
 
 # End
 
