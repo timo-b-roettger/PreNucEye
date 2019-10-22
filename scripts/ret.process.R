@@ -327,7 +327,7 @@ for (participant in participants){
   } #/trial
 } #/participant
 
-# Sanity check
+# Sanity checks
 data.roi.long.agg <- data.roi %>% 
   gather(window, proportion, 3:19) %>% 
   separate(window, c("position", "window")) %>% 
@@ -343,21 +343,43 @@ sum(data.roi.long.agg[data.roi.long.agg$window != "na",]$sum == 0, na.rm = T) / 
 # another 20% (doesn't exactly add up to 100, but probs rounding errors)
 
 
+
+# old.data.roi = data.roi
+# data.roi = old.data.roi
+# 
+# old.data.roi.long.agg = data.roi.long.agg
+# data.roi.long.agg = old.data.roi.long.agg
+# 
+# 
+# data.roi.long.agg = rowid_to_column(data.roi.long.agg)
+# data.roi = rowid_to_column(data.roi)
+
+
 ## Merge data.roi into data
 data.roi.long <- data.roi %>% 
   gather(window, proportion, 3:19) %>%
   separate(window, c("position", "window")) %>%
-  full_join(data.roi.long.agg) %>% 
-  spread(position, proportion) #%>% # Error here -DT
-  # rename("BL_prop" = BL,
-  #        "BR_prop" = BR,
-  #        "TL_prop" = TL,
-  #        "TR_prop" = TR,) %>%
+  full_join(data.roi.long.agg)
+
+# Add unique identifier to joined dataframe
+data.roi.long = rowid_to_column(data.roi.long)
+
+# Spread and join
+data.roi.long <- data.roi.long %>% 
+  spread(position, proportion) %>% # Error here -DT
+  rename("BL_prop" = BL,
+         "BR_prop" = BR,
+         "TL_prop" = TL,
+         "TR_prop" = TR,) %>%
   # delete irrelevant rows
   filter(window != "na",
-         sum != 0) %>% 
-  full_join(data)
+         sum != 0) #%>% 
+  #full_join(data)
 
+#*#*#*#*#*#*#*#*#*#
+# Not sure if this is in the right format -DT
+data.roi.long <- merge.data.frame(data, data.roi.long, by=c("ID", "eyetrial"))
+#*#*#*#*#*#*#*#*#*#
 
 # Map proportions onto response categories
 data.roi.long$Target_prop <- ifelse(data.roi.long$Target_pos == "TL_Pic", data.roi.long$TL_prop,
