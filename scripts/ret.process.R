@@ -29,6 +29,7 @@ setwd(dirname(datapath))
 setwd("../processed/")
 
 ## Load and merge the data with our acoustic landmarks
+
 # Load processed data (OpenSesame (+ Mouse Tracking) + Eye Tracking)
 data <- read_csv("ret_processed_stage_1.csv")
 
@@ -267,7 +268,7 @@ for (participant in participants){
   } #/trial
 } #/participant
 
-## Validate the above
+## Validate the above (should have no FALSE)
 table(data$window_early + data$window_prenuc + data$window_nuclear + data$window_adverb == data$fixDur)
 
 ## Create a new dataframe for proportion of fixation by roi, summarized by trial (not gaze/fixation)
@@ -327,47 +328,42 @@ for (participant in participants){
   } #/trial
 } #/participant
 
-# Sanity checks
+# Sanity checks (should be all 1)
 data.roi.long.agg <- data.roi %>% 
   gather(window, proportion, 3:19) %>% 
   separate(window, c("position", "window")) %>% 
   group_by(window, ID, eyetrial) %>% 
   summarise(sum = sum(proportion, na.rm = T))
 
-# sum columns should all add up to 1
-sum(data.roi.long.agg[data.roi.long.agg$window != "na",]$sum == 1, na.rm = T) / nrow(data.roi.long.agg[data.roi.long.agg$window != "na",])
-# at 84.1%
+hist(data.roi.long.agg$sum)
+# TR: there are several 3s. 
+# Looking at the data, for these there are not eyetrial and ID specified (=NA). 
+# Would be good to understand where they are coming form
+
+# sum columns should all add up to 1 (excluding the ones with 3)
+sum(data.roi.long.agg[data.roi.long.agg$window != "na",]$sum == 1, na.rm = T) / nrow(data.roi.long.agg[data.roi.long.agg$window != "na" & data.roi.long.agg$sum != 3,])
+# at 82.8%
 
 # Might be due to windows that do not have any fixation which results in 0s
-sum(data.roi.long.agg[data.roi.long.agg$window != "na",]$sum == 0, na.rm = T) / nrow(data.roi.long.agg[data.roi.long.agg$window != "na",])
-# another 15.7% (doesn't exactly add up to 100, but probs rounding errors)
+sum(data.roi.long.agg[data.roi.long.agg$window != "na",]$sum == 0, na.rm = T) / nrow(data.roi.long.agg[data.roi.long.agg$window != "na" & data.roi.long.agg$sum != 3,])
+# another 17.1% (doesn't exactly add up to 100, but probs rounding errors)
 
+# We might want to add these values to the data frame to investigate further
 
-
-# old.data.roi = data.roi
-# data.roi = old.data.roi
-# 
-# old.data.roi.long.agg = data.roi.long.agg
-# data.roi.long.agg = old.data.roi.long.agg
-# 
-# 
-# data.roi.long.agg = rowid_to_column(data.roi.long.agg)
-# data.roi = rowid_to_column(data.roi)
-
-
-## Merge data.roi into data
+# Merge data.roi with the aggregated values from above
 data.roi.long <- data.roi %>% 
-  gather(window, proportion, 3:19) %>%
+  gather(window, proportion, 3:19) %>% 
   separate(window, c("position", "window")) %>%
-  full_join(data.roi.long.agg)
+  full_join(data.roi.long.agg) %>% 
+  filter(sum != 3,
+         !is.na(ID))
 
-# Add unique identifier to joined dataframe
-data.roi.long = rowid_to_column(data.roi.long)
+# create unique identifier of rows
+#data.roi.long <- rowid_to_column(data.roi.long)
 
-# Spread and join
+# Spread the screen position
 data.roi.long <- data.roi.long %>% 
-  mutate(proportion = ifelse(is.na(proportion), 0, proportion)) %>% 
-  spread(position, proportion) %>% # Error here -DT
+  spread(position, proportion) %>% # Error here -DT / fixed now -TR
   rename("BL_prop" = BL,
          "BR_prop" = BR,
          "TL_prop" = TL,
@@ -375,6 +371,8 @@ data.roi.long <- data.roi.long %>%
   # delete irrelevant rows
   filter(window != "na",
          sum != 0) #%>% 
+  # there are other values of sum that are not 1
+  # hist(data.roi.long$sum)
   #full_join(data)
 
 #*#*#*#*#*#*#*#*#*#
@@ -388,28 +386,28 @@ data.roi.long <- full_join(data.roi.long, data)
 data.roi.long$Target_prop <- ifelse(data.roi.long$Target_pos == "TL_Pic", data.roi.long$TL_prop,
                              ifelse(data.roi.long$Target_pos == "TR_Pic", data.roi.long$TR_prop,
                              ifelse(data.roi.long$Target_pos == "BL_Pic", data.roi.long$BL_prop, 
-                             ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$BR_prop, 0))))
+                             ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$BR_prop, NA))))
 
 data.roi.long$SubjComp_prop <- ifelse(data.roi.long$Target_pos == "TL_Pic", data.roi.long$TR_prop,
                              ifelse(data.roi.long$Target_pos == "TR_Pic", data.roi.long$BR_prop,
                              ifelse(data.roi.long$Target_pos == "BL_Pic", data.roi.long$TL_prop, 
-                             ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$BL_prop, 0))))
+                             ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$BL_prop, NA))))
 
 data.roi.long$ObjComp_prop <- ifelse(data.roi.long$Target_pos == "TL_Pic", data.roi.long$BL_prop,
                               ifelse(data.roi.long$Target_pos == "TR_Pic", data.roi.long$TL_prop, 
                               ifelse(data.roi.long$Target_pos == "BL_Pic", data.roi.long$BR_prop,
-                              ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$TR_prop, 0))))
+                              ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$TR_prop, NA))))
 
 data.roi.long$Distr_prop <- ifelse(data.roi.long$Target_pos == "TL_Pic", data.roi.long$BR_prop,
                             ifelse(data.roi.long$Target_pos == "TR_Pic", data.roi.long$BL_prop,
                             ifelse(data.roi.long$Target_pos == "BL_Pic", data.roi.long$TR_prop, 
-                            ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$TL_prop, 0))))
+                            ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$TL_prop, NA))))
 
 # maybe useful to actually code them as being given or contrastive
 data.roi.long$GivenSubj_prop <- ifelse(data.roi.long$Condition == "CG", 
                                        data.roi.long$SubjComp_prop + data.roi.long$Distr_prop,
                                 ifelse(data.roi.long$Condition == "GC", 
-                                       data.roi.long$Target_prop + data.roi.long$ObjComp_prop,
+                                       data.roi.long$Target_prop + data.roi.long$Distr_prop,
                                 ifelse(data.roi.long$Condition == "GG", 
                                        data.roi.long$Target_prop + data.roi.long$ObjComp_prop, 0
                                 )))

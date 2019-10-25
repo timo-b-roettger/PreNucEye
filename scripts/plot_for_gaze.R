@@ -44,10 +44,8 @@ data <- full_join(data, landmarks) %>%
 data <- data %>% 
   filter(excludeTriggerError == 0,
          excludeRefError == 0, 
-         excludeLargeError == 0
-         #,
-         #lgerror == 0
-         )
+         excludeLargeError == 0,
+         lgerror == 0)
 
 # Order factor levels of window
 data$window <- factor(data$window, levels = c("early", "prenuclear", "nuclear", "adverb"))
@@ -174,10 +172,10 @@ Fix_agg_2responses <-
   geom_segment(x = -Inf, y = 0.5, xend = Inf, yend = 0.5,
                lty = "dashed", size = 1, colour = "black") +
   geom_line(aes(group = interaction(ID, response)),
-            alpha = 0.2, size = 1) +
+            alpha = 0.1, size = 1) +
   geom_line(data = xagg[xagg$response %in%  c("Given Object", "Given Subject"),], aes(group = interaction(response)),
             size = 2) +
-  geom_point(alpha = 0.2, size = 2) +
+  geom_point(alpha = 0.1, size = 2) +
   geom_point(data = xagg[xagg$response %in%  c("Given Object", "Given Subject"),], 
              size = 3, pch = 21, stroke = 1, color = "black") +
   facet_grid(~ Condition) +
@@ -225,16 +223,16 @@ Fix_agg_4responses_facet <-
   geom_segment(x = -Inf, y = 0.25, xend = Inf, yend = 0.25,
                lty = "dashed", size = 1, colour = "black") +
   geom_line(aes(group = interaction(ID, response)),
-            alpha = 0.2, size = 1) +
+            alpha = 0.1, size = 1) +
   geom_line(data = xagg[!xagg$response %in%  c("Given Object", "Given Subject"),], aes(group = interaction(response)),
             size = 2) +
-  geom_point(alpha = 0.2, size = 2) +
+  geom_point(alpha = 0.1, size = 2) +
   geom_point(data = xagg[!xagg$response %in%  c("Given Object", "Given Subject"),], 
              size = 3, pch = 21, stroke = 1, color = "black") +
   facet_grid(response ~ Condition) +
   scale_colour_manual(values = c(DistrCol, ObjCompCol, SubjCompCol, TargetCol)) +
   scale_fill_manual(values = c(DistrCol, ObjCompCol, SubjCompCol, TargetCol)) +
-  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(0,1)) +
+  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75)), limits = c(0,0.75)) +
   labs(title = "Proportion of looks across conditions and windows",
        subtitle = "semitransparent points and lines represent individual participants\n",
        y = "Proportion of fixation duration\n",
@@ -277,10 +275,10 @@ Fix_agg_2responses_trialBin <-
   geom_segment(x = -Inf, y = 0.5, xend = Inf, yend = 0.5,
                lty = "dashed", size = 1, colour = "black") +
   geom_line(aes(group = interaction(ID, response)),
-            alpha = 0.2, size = 1) +
+            alpha = 0.05, size = 1) +
   geom_line(data = xagg_trialBin[xagg_trialBin$response %in%  c("Given Object", "Given Subject"),], aes(group = interaction(response)),
             size = 2) +
-  geom_point(alpha = 0.2, size = 2) +
+  geom_point(alpha = 0.05, size = 2) +
   geom_point(data = xagg_trialBin[xagg_trialBin$response %in%  c("Given Object", "Given Subject"),], 
              size = 3, pch = 21, stroke = 1, color = "black") +
   facet_grid(trial_bin~ Condition) +
@@ -324,12 +322,12 @@ ggsave(filename = "Fix_agg_2responses_trialBin.pdf",
 
 # Plot fixations as developing over time (ugly, but good so quickly assess)
 ggplot(data = data[!data$response %in%  c("Given Object", "Given Subject"),], aes(x = eyetrial, y = proportion, color = response, fill = response)) +
-  geom_line(aes(group = interaction(ID, response)), alpha = 0.1) +
+  geom_line(aes(group = interaction(ID, response)), alpha = 0.05) +
   geom_smooth(data = xagg_trials[!xagg_trials$response %in%  c("Given Object", "Given Subject"),], aes(y = prop, group = response)) +
   facet_grid(window ~ Condition)
               
 ggplot(data = data[data$response %in%  c("Given Object", "Given Subject"),], aes(x = eyetrial, y = proportion, color = response, fill = response)) +
-  geom_line(aes(group = interaction(ID, response)), alpha = 0.1) +
+  geom_line(aes(group = interaction(ID, response)), alpha = 0.05) +
   geom_smooth(data = xagg_trials[xagg_trials$response %in%  c("Given Object", "Given Subject"),], aes(y = prop, group = response)) +
   facet_grid(window ~ Condition)
 
