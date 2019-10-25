@@ -30,7 +30,7 @@ setwd("../processed/")
 ## data set for plotting trajectories
 d2 <- read.csv("df_data.csv")
 d2 <- d2[d2$responded_correct == TRUE,]
-d2 <- d2[d2]
+#d2 <- d2[d2]
 
 # read in acoustic landmarks for plotting
 #landmarks <- read.csv("segmental_landmarks.csv")
@@ -106,7 +106,7 @@ lexical.col = "#000000"
 ############################
 ## plotting xpos and ypos ##
 ############################
-
+quartz()
   ggplot(xagg, aes(x = mean_xpos, y = mean_ypos, colour = Condition, fill = Condition)) +
   # geom_path(data = xagg_subjects, 
   #           aes(x = -mean_xpos, y = mean_ypos, colour = Focus, group = interaction(subject_nr, Focus)), 

@@ -42,10 +42,12 @@ data <- full_join(data, landmarks) %>%
 
 # exclusion
 data <- data %>% 
-  filter(excludeTriggerError = 0,
-         excludeRefError = 0, 
-         excludeLargeError = 0,
-         lgerror = 0)
+  filter(excludeTriggerError == 0,
+         excludeRefError == 0, 
+         excludeLargeError == 0
+         #,
+         #lgerror == 0
+         )
 
 # Order factor levels of window
 data$window <- factor(data$window, levels = c("early", "prenuclear", "nuclear", "adverb"))
@@ -121,10 +123,10 @@ ggplot(data = xagg_subj[!xagg_subj$response %in%  c("Given Object", "Given Subje
   geom_segment(x = -Inf, y = 0.25, xend = Inf, yend = 0.25,
                lty = "dashed", size = 1, colour = "black") +
   geom_line(aes(group = interaction(ID, response)),
-            alpha = 0.2, size = 1) +
+            alpha = 0.1, size = 1) +
   geom_line(data = xagg[!xagg$response %in%  c("Given Object", "Given Subject"),], aes(group = interaction(response)),
             size = 2) +
-  geom_point(alpha = 0.2, size = 2) +
+  geom_point(alpha = 0.1, size = 2) +
   geom_point(data = xagg[!xagg$response %in%  c("Given Object", "Given Subject"),], 
              size = 3, pch = 21, stroke = 1, color = "black") +
   facet_grid(~ Condition) +

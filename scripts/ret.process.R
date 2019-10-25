@@ -72,7 +72,7 @@ triggerError_table <- data %>%
 print(tbl_df(triggerError_table), n = 50)
 
 # check for 10% errors per subject and mark them
-TriggerErrorID = c("999")
+TriggerErrorID = c("")
 data$excludeTriggerError <- 0
 data$excludeTriggerError[data$ID %in% TriggerErrorID] <- 1
 
@@ -336,11 +336,11 @@ data.roi.long.agg <- data.roi %>%
 
 # sum columns should all add up to 1
 sum(data.roi.long.agg[data.roi.long.agg$window != "na",]$sum == 1, na.rm = T) / nrow(data.roi.long.agg[data.roi.long.agg$window != "na",])
-# at 80%
+# at 84.1%
 
 # Might be due to windows that do not have any fixation which results in 0s
 sum(data.roi.long.agg[data.roi.long.agg$window != "na",]$sum == 0, na.rm = T) / nrow(data.roi.long.agg[data.roi.long.agg$window != "na",])
-# another 20% (doesn't exactly add up to 100, but probs rounding errors)
+# another 15.7% (doesn't exactly add up to 100, but probs rounding errors)
 
 
 
@@ -366,41 +366,44 @@ data.roi.long = rowid_to_column(data.roi.long)
 
 # Spread and join
 data.roi.long <- data.roi.long %>% 
+  mutate(proportion = ifelse(is.na(proportion), 0, proportion)) %>% 
   spread(position, proportion) %>% # Error here -DT
   rename("BL_prop" = BL,
          "BR_prop" = BR,
          "TL_prop" = TL,
-         "TR_prop" = TR,) %>%
+         "TR_prop" = TR) %>%
   # delete irrelevant rows
   filter(window != "na",
          sum != 0) #%>% 
   #full_join(data)
 
 #*#*#*#*#*#*#*#*#*#
+# I think this does the trick
+data.roi.long <- full_join(data.roi.long, data)
 # Not sure if this is in the right format -DT
-data.roi.long <- merge.data.frame(data, data.roi.long, by=c("ID", "eyetrial"))
+#data.roi.long <- merge.data.frame(data, data.roi.long, by=c("ID", "eyetrial"))
 #*#*#*#*#*#*#*#*#*#
 
 # Map proportions onto response categories
 data.roi.long$Target_prop <- ifelse(data.roi.long$Target_pos == "TL_Pic", data.roi.long$TL_prop,
                              ifelse(data.roi.long$Target_pos == "TR_Pic", data.roi.long$TR_prop,
                              ifelse(data.roi.long$Target_pos == "BL_Pic", data.roi.long$BL_prop, 
-                             ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$BR_prop, NA))))
+                             ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$BR_prop, 0))))
 
 data.roi.long$SubjComp_prop <- ifelse(data.roi.long$Target_pos == "TL_Pic", data.roi.long$TR_prop,
                              ifelse(data.roi.long$Target_pos == "TR_Pic", data.roi.long$BR_prop,
                              ifelse(data.roi.long$Target_pos == "BL_Pic", data.roi.long$TL_prop, 
-                             ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$BL_prop, NA))))
+                             ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$BL_prop, 0))))
 
 data.roi.long$ObjComp_prop <- ifelse(data.roi.long$Target_pos == "TL_Pic", data.roi.long$BL_prop,
                               ifelse(data.roi.long$Target_pos == "TR_Pic", data.roi.long$TL_prop, 
                               ifelse(data.roi.long$Target_pos == "BL_Pic", data.roi.long$BR_prop,
-                              ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$TR_prop, NA))))
+                              ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$TR_prop, 0))))
 
 data.roi.long$Distr_prop <- ifelse(data.roi.long$Target_pos == "TL_Pic", data.roi.long$BR_prop,
                             ifelse(data.roi.long$Target_pos == "TR_Pic", data.roi.long$BL_prop,
                             ifelse(data.roi.long$Target_pos == "BL_Pic", data.roi.long$TR_prop, 
-                            ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$TL_prop, NA))))
+                            ifelse(data.roi.long$Target_pos == "BR_Pic", data.roi.long$TL_prop, 0))))
 
 # maybe useful to actually code them as being given or contrastive
 data.roi.long$GivenSubj_prop <- ifelse(data.roi.long$Condition == "CG", 
@@ -424,7 +427,8 @@ df <- data.roi.long %>%
   select(ID, eyetrial, window, Condition, sum,
          Target_obj, Target_subj,
          Target_prop, SubjComp_prop, ObjComp_prop, Distr_prop,
-         GivenSubj_prop, GivenObj_prop) %>% 
+         GivenSubj_prop, GivenObj_prop,
+         excluded_IDs, excludeLargeError, excludeTriggerError, excludeRefError, lgerror) %>% 
   # delete all redundant rows
   distinct()
 

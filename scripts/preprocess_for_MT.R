@@ -33,7 +33,7 @@ path <- getwd()
 # Read & preprocess ####
 raw_data <- readbulk::read_opensesame(directory = path)
 temp_xdata <- raw_data
-xdata <- temp_xdata[temp_xdata$subject_nr == "999",]
+xdata <- temp_xdata[temp_xdata$subject_nr != "999",]
 
 
 # Fix default / Default error
