@@ -32,25 +32,24 @@ path <- getwd()
 
 # Read & preprocess ####
 raw_data <- readbulk::read_opensesame(directory = path)
-temp_xdata <- raw_data
-xdata <- temp_xdata[temp_xdata$subject_nr != "999",]
-
+xdata <- raw_data
 
 # Fix default / Default error
-# xdata$Condition <- ifelse(xdata$Condition == "default", "Default", xdata$Condition)
+xdata$Condition <- ifelse(xdata$Condition == "default", "Default", xdata$Condition)
 
 # load in acoustic landmarks
-# acoustics <- read_csv("acoustic_landmarks.csv")
+setwd("../data/")
+acoustics <- read_csv("acoustic_landmarks.csv")
 
 # join data and acoustic landmarks
-# xdata <- full_join(xdata, acoustics)
+xdata <- full_join(xdata, acoustics)
 
-# Exclude empty "timestamps_mt_maintrack_1", "xpos_mt_maintrack_1", "ypos_mt_maintrack_1" (quirk of OpenSesame)   
-#xdata  <- dplyr::select(xdata,-xpos_mt_maintrack_1,-ypos_mt_maintrack_1,-timestamps_mt_maintrack_1)
+# Exclude empty "timestamps_mt_maintrack_1", "xpos_mt_maintrack_1", "ypos_mt_maintrack_1" (quirk of OpenSesame)
+# xdata  <- dplyr::select(xdata,-xpos_mt_maintrack_1,-ypos_mt_maintrack_1,-timestamps_mt_maintrack_1)
 
 # Record number of test trials, enabling the calculation
 # of exclusion percentages later
-n_before <- length(xdata$count_trial)
+n_before <- length(xdata[!(xdata$Condition %in% c("Training1", "Training2")),]$count_trial_posterior)
 
 ## transform into mousetrap object ####
 # Create a mousetrap data object
@@ -68,9 +67,8 @@ mtdata_2nd <- mt_import_mousetrap(
 )
 
 # create a PDF with all separate raw trajectories 
-setwd("../plots/")
-mt_plot_per_trajectory("trajectories.pdf", mtdata_2nd, "trajectories")
-
+# setwd("../plots/")
+# mt_plot_per_trajectory("trajectories.pdf", mtdata_2nd, "trajectories")
 
 # Bottoms up
 mtdata_2nd <- mt_remap_symmetric(
@@ -92,39 +90,12 @@ mtdata_2nd <- mt_align_start(
   verbose = FALSE
 )
 
-
 ## Subset Correct and Incorrect responses ####
 mtdata_2nd$data$responded_correct <- ifelse(mtdata_2nd$data$response_mt_maintrack_2nd_02 == mtdata_2nd$data$Target_pic, 1, 0) 
 
 # Record percentage of trials that are correct
-round(100 - (sum((mtdata_2nd$data$responded_correct)) / max(mtdata_2nd$data$count_trial_posterior) * 100), digits = 2)
-# note perentage here: 0.91
-
-# calculate correct responses for subjects
-# error_table <- 
-#   mtdata$data %>%
-#   group_by(subject_nr) %>%
-#   summarise(count = round(100 - (sum((responded_correct)) / length(count_trial) * 100), digits = 2))
-# check for values below 90% per subject and manually exclude them
-
-#print(tbl_df(error_table), n = 90)
-
-# check for 10% errors per subject and mark them
-#error_subjects = c("")
-#mtdata_2nd$data$exclude_error <- 0
-#mtdata_2nd$data$exclude_error[mtdata_2nd$data$subject_nr %in% error_subjects] <- 1
-
-
-# # sanity check
-# df_tn <- as.data.frame.table(mtdata_2nd$sn_trajectories) %>%
-#   spread(key = Var3, value = Freq)
-# 
-# ggplot(df_tn, aes(x = -xpos, y = ypos, color = timestamps)) +
-#   # geom_path(data = xagg_subjects,
-#   #           aes(x = -mean_xpos, y = mean_ypos, colour = Focus, group = interaction(subject_nr, Focus)),
-#   #           alpha = 0.3, inherit.aes = FALSE) +
-#   geom_path() 
-
+round(1- (sum((mtdata_2nd$data$responded_correct)) / n_before), digits = 2)
+# note perentage here: 2%
 
 # Time normalize
 mtdata_2nd <- mt_time_normalize(
@@ -158,14 +129,6 @@ mtdata_2nd <- mt_measures(
   flip_threshold = 0,
   verbose = TRUE
 )
-
-# mtdata <- mt_deviations(
-#   mtdata,
-#   use = "der_trajectories",
-#   save_as = "deviations",
-#   #flip_threshold = 0,
-#   verbose = TRUE
-# )
 
 
 ## Create data.frame containing the results ####
