@@ -407,7 +407,7 @@ data.roi.long$Distr_prop <- ifelse(data.roi.long$Target_pos == "TL_Pic", data.ro
 data.roi.long$GivenSubj_prop <- ifelse(data.roi.long$Condition == "CG", 
                                        data.roi.long$SubjComp_prop + data.roi.long$Distr_prop,
                                 ifelse(data.roi.long$Condition == "GC", 
-                                       data.roi.long$Target_prop + data.roi.long$Distr_prop,
+                                       data.roi.long$Target_prop + data.roi.long$ObjComp_prop,
                                 ifelse(data.roi.long$Condition == "GG", 
                                        data.roi.long$Target_prop + data.roi.long$ObjComp_prop, 0
                                 )))
