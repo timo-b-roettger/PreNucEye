@@ -422,7 +422,7 @@ data.roi.long$GivenObj_prop <- ifelse(data.roi.long$Condition == "CG",
 
 # reduce dataframe to something reasonable
 df <- data.roi.long %>% 
-  select(ID, eyetrial, window, Condition, sum,
+  dplyr::select(ID, eyetrial, window, Condition, sum,
          Target_obj, Target_subj,
          Target_prop, SubjComp_prop, ObjComp_prop, Distr_prop,
          GivenSubj_prop, GivenObj_prop,
