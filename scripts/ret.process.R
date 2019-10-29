@@ -119,11 +119,12 @@ data$excludeLargeError[data$ID %in% LargeErrorID] <- 1
 ### Self-Reported Challenges
 ## Vision    4, 18
 ## Hearing   -
-## Reading  10, 18
+## Reading   10, 18
 ## Learning  4, 10, 24
+## Nat.Lang. 34
 
 # Exclude by participant ID
-excluded_IDs = c(4, 10, 18, 24)
+excluded_IDs = c(4, 10, 18, 24, 34)
 
 # Mark all rows from excluded participants
 data$surveyExclude = 0
