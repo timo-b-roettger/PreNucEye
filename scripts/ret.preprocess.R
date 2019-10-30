@@ -76,8 +76,8 @@ ret <- makeROIs(ret, matrix(c(750,750), nrow = 1), shapes = 'circle', radius = 2
 ret <- makeROIs(ret, matrix(c(150,750), nrow = 1), shapes = 'circle', radius = 200, names = 4, append = T)
 
 ## Check our work by plotting the ROIs with all fixations for all trials
-plot(ret, zoom = FALSE, oneplot = TRUE, crosshairs = FALSE, summarize = 100)
- 
+plot(ret, crosshairs = FALSE, summarize = 100)
+
 ## Calculate fixation hits by ROI
 ret <- calcHits(ret)
 
@@ -115,8 +115,8 @@ data$fixDur <- data$entime - data$sttime
 data$roiLoc = NA
 data$roiLoc[data$roi_1 == 1] <- "TL"
 data$roiLoc[data$roi_2 == 1] <- "TR"
-data$roiLoc[data$roi_3 == 1] <- "BL"
-data$roiLoc[data$roi_4 == 1] <- "BR"
+data$roiLoc[data$roi_3 == 1] <- "BR"
+data$roiLoc[data$roi_4 == 1] <- "BL"
 
 # Reduce data (from over 300 variables) and look only at test trials
 data <- data %>% 
