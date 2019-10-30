@@ -83,6 +83,11 @@ xagg_subj <- data %>%
   group_by(Condition, window, ID, response) %>% 
   summarise(prop = mean(proportion, na.rm = T))
 
+# aggregate proportions (per target tiem)
+xagg_item <- data %>% 
+  group_by(Condition, window, Target_obj, response) %>% 
+  summarise(prop = mean(proportion, na.rm = T))
+
 # aggregate proportions (overall)
 xagg <- xagg_subj %>% 
   group_by(Condition, window, response) %>% 
@@ -217,6 +222,7 @@ ggsave(filename = "Fix_agg_2responses.pdf",
        dpi = 300)
 
 
+
 # Same with facetted response for better overview: 2 responses
 Fix_agg_4responses_facet <- 
   ggplot(data = xagg_subj[!xagg_subj$response %in%  c("Given Object", "Given Subject"),], aes(x = window, y = prop, color = response, fill = response)) +
@@ -232,7 +238,7 @@ Fix_agg_4responses_facet <-
   facet_grid(response ~ Condition) +
   scale_colour_manual(values = c(DistrCol, ObjCompCol, SubjCompCol, TargetCol)) +
   scale_fill_manual(values = c(DistrCol, ObjCompCol, SubjCompCol, TargetCol)) +
-  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75)), limits = c(0,0.75)) +
+  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(0,1)) +
   labs(title = "Proportion of looks across conditions and windows",
        subtitle = "semitransparent points and lines represent individual participants\n",
        y = "Proportion of fixation duration\n",
@@ -330,5 +336,4 @@ ggplot(data = data[data$response %in%  c("Given Object", "Given Subject"),], aes
   geom_line(aes(group = interaction(ID, response)), alpha = 0.05) +
   geom_smooth(data = xagg_trials[xagg_trials$response %in%  c("Given Object", "Given Subject"),], aes(y = prop, group = response)) +
   facet_grid(window ~ Condition)
-
 

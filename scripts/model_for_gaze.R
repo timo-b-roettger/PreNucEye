@@ -64,36 +64,45 @@ priors_gaze <- c(
 
 # model subject preference
 xmdl_subj <- brm(subj_preference ~ Condition * window * eyetrial.c + 
-              # specify maximal model for now
+              # specify maximal model for IDs (no correlation assumed)
               (1 | ID) + 
               (0 + Condition * window * eyetrial.c | ID) + 
-              (1 | Target_obj),
-              family = "binomial", 
+              (1 | Target_obj) +
+              (0 + Condition * window | Target_obj),
+              family = "bernoulli", 
             inits = 0, 
             chains = 4,
             iter = 2000,
             cores = 4,
-            control = list(adapt_delta = 0.99),
+            control = list(adapt_delta = 0.9),
             data = data)
 
 # model object preference
 xmdl_obj <- brm(obj_preference ~ Condition * window * eyetrial + 
-              # specify maximal model for now
-              (1 + Condition * window * eyetrial | ID) + 
-              (1 + Condition * window | Target_obj),
-            family = "binomial", 
+                # specify maximal model for IDs (no correlation assumed)
+                (1 | ID) + 
+                (0 + Condition * window * eyetrial.c | ID) + 
+                # intercept only for referent (do not expect much variability) 
+                (1 | Target_obj),
+                family = "binomial", 
             inits = 0, 
             chains = 4,
             iter = 2000,
             cores = 4,
-            control = list(adapt_delta = 0.99),
+            control = list(adapt_delta = 0.9),
             data = data)
 
 system("killall R")
 
+## save models for later use
+setwd("../models/")
+save(xmdl_subj, 
+     #xmdl_obj, 
+     file = "Bayesian_models.RData")
+
+
 ## extract posteriors
-psamples_subj = posterior_samples(xmdl) %>% 
-#psamples_subj = posterior_samples(xmdl_subj) %>% 
+psamples_subj = posterior_samples(xmdl_subj) %>% 
   mutate(
     # calculate fixatins in the middle of experiment (eyetrial.c = 0)
     CG_early = b_Intercept,
@@ -159,10 +168,18 @@ mean <- c()
 probs <- c()
 
 # loop through col_names1 to extract posterior mean, 95% CI and Pr(beta < 0)
+# for (i in 1:length(col_names1)) {
+#   lci <- c(lci, round(plogis(coda::HPDinterval(as.mcmc(psamples_subj[[col_names1[i]]]))), 2)[1])
+#   uci <- c(uci, round(plogis(coda::HPDinterval(as.mcmc(psamples_subj[[col_names1[i]]]))), 2)[2])
+#   mean <- c(mean, round(plogis(mean(psamples_subj[[col_names1[i]]])), 2))
+#   name <- c(name, col_names1[i])
+#   probs <- c(probs, round(length(which(psamples_subj[[col_names1[i]]] < 0)) / length(psamples_subj[[col_names1[i]]]),2))
+# }
+
 for (i in 1:length(col_names1)) {
-  lci <- c(lci, round(plogis(coda::HPDinterval(as.mcmc(psamples_subj[[col_names1[i]]]))), 2)[1])
-  uci <- c(uci, round(plogis(coda::HPDinterval(as.mcmc(psamples_subj[[col_names1[i]]]))), 2)[2])
-  mean <- c(mean, round(plogis(mean(psamples_subj[[col_names1[i]]])), 2))
+  lci <- c(lci, round(coda::HPDinterval(as.mcmc(psamples_subj[[col_names1[i]]])), 2)[1])
+  uci <- c(uci, round(coda::HPDinterval(as.mcmc(psamples_subj[[col_names1[i]]])), 2)[2])
+  mean <- c(mean, round(mean(psamples_subj[[col_names1[i]]]), 2))
   name <- c(name, col_names1[i])
   probs <- c(probs, round(length(which(psamples_subj[[col_names1[i]]] < 0)) / length(psamples_subj[[col_names1[i]]]),2))
 }
