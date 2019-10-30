@@ -441,7 +441,7 @@ setwd("../processed/")
 readr::write_csv(df, "ret_processed_stage_2.csv")
 
 # Cleanup
-rm(data.roi, datapath, participant, participants, trial, fixSum, gaze, lnmk_adverb, lnmk_prenuc, lnmk_referent, row, trialgazes, fixDur, fixEnd, fixStart, fixSum_adverb, fixSum_early, fixSum_nuclear, fixSum_prenuc, data.roi.long.agg, data, data.roi.long, LargeError_table, ReferentError_table, triggerError_table, LargeErrorID, ReferentErrorID, TriggerErrorID, surveyExclude)
+rm(data.roi, datapath, participant, participants, trial, fixSum, gaze, lnmk_adverb, lnmk_prenuc, lnmk_referent, row, trialgazes, fixDur, fixEnd, fixStart, fixSum_adverb, fixSum_early, fixSum_nuclear, fixSum_prenuc, data.roi.long.agg, data, data.roi.long, LargeError_table, ReferentError_table, triggerError_table, LargeErrorID, ReferentErrorID, TriggerErrorID, excluded_IDs)
 
 # End
 
