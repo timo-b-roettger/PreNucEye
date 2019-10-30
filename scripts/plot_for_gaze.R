@@ -83,6 +83,11 @@ xagg_subj <- data %>%
   group_by(Condition, window, ID, response) %>% 
   summarise(prop = mean(proportion, na.rm = T))
 
+# aggregate proportions (per target tiem)
+xagg_item <- data %>% 
+  group_by(Condition, window, Target_obj, response) %>% 
+  summarise(prop = mean(proportion, na.rm = T))
+
 # aggregate proportions (overall)
 xagg <- xagg_subj %>% 
   group_by(Condition, window, response) %>% 
@@ -217,6 +222,7 @@ ggsave(filename = "Fix_agg_2responses.pdf",
        dpi = 300)
 
 
+
 # Same with facetted response for better overview: 2 responses
 Fix_agg_4responses_facet <- 
   ggplot(data = xagg_subj[!xagg_subj$response %in%  c("Given Object", "Given Subject"),], aes(x = window, y = prop, color = response, fill = response)) +
@@ -332,3 +338,93 @@ ggplot(data = data[data$response %in%  c("Given Object", "Given Subject"),], aes
   facet_grid(window ~ Condition)
 
 
+#### Diagnose issue
+
+# Plot aggregated fixations for 4 categories
+  ggplot(data = xagg_item[!xagg_item$response %in%  c("Given Object", "Given Subject"),], 
+         aes(x = window, y = prop, color = response, fill = response)) +
+  geom_segment(x = -Inf, y = 0.25, xend = Inf, yend = 0.25,
+               lty = "dashed", size = 1, colour = "black") +
+  geom_line(aes(group = interaction(Target_obj, response)),
+            alpha = 0.1, size = 1) +
+  geom_line(data = xagg[!xagg$response %in%  c("Given Object", "Given Subject"),], aes(group = interaction(response)),
+            size = 2) +
+  geom_point(alpha = 0.1, size = 2) +
+  geom_point(data = xagg[!xagg$response %in%  c("Given Object", "Given Subject"),], 
+             size = 3, pch = 21, stroke = 1, color = "black") +
+  facet_grid(~ Condition) +
+  scale_colour_manual(values = c(DistrCol, ObjCompCol, SubjCompCol, TargetCol)) +
+  scale_fill_manual(values = c(DistrCol, ObjCompCol, SubjCompCol, TargetCol)) +
+  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(0,1)) +
+  labs(title = "Proportion of looks across conditions and windows",
+       subtitle = "semitransparent points and lines represent individual participants\n",
+       y = "Proportion of fixation duration\n",
+       x = "\nTime window"
+  ) +
+  theme_classic() + 
+  theme(legend.position = "right",
+        legend.key.height = unit(2,"line"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 16),
+        legend.background = element_rect(fill = "transparent"),
+        strip.background = element_blank(),
+        strip.text = element_text(size = 16),
+        panel.spacing = unit(2, "lines"),
+        plot.background = element_rect(fill = "transparent", colour = NA),
+        panel.background = element_rect(fill = "transparent"),
+        axis.line.x = element_blank(),
+        axis.text.x = element_text(size = 16, angle = 45, hjust = 1),
+        axis.text.y = element_text(size = 16),
+        axis.title = element_text(size = 16, face = "bold"),
+        plot.title = element_text(size = 16, face = "bold"),
+        plot.margin = unit(c(1,1,1,1),"cm"))
+  
+  
+  
+  
+  # aggregate proportions (per target tiem)
+  xagg_item <- data %>% 
+    group_by(Condition, window, Target_obj, response) %>% 
+    summarise(prop = mean(proportion, na.rm = T))
+  
+  
+  ggplot(data = xagg_item[xagg_item$response %in%  c("Given Object", "Given Subject"),], 
+         aes(x = window, y = prop, color = response, fill = response)) +
+    #geom_label(data = xagg_item[xagg_item$response %in%  c("Given Object", "Given Subject") & xagg_item$response == "Given Object",], 
+    #           aes(x = window, y = prop, label = Target_obj, colour = response), alpha = 0.5, inherit.aes = FALSE) +
+    geom_segment(x = -Inf, y = 0.5, xend = Inf, yend = 0.5,
+                 lty = "dashed", size = 1, colour = "black") +
+    geom_line(aes(group = interaction(response)),
+              alpha = 0.2, 
+              size = 0.5) +
+    geom_line(data = xagg[xagg$response %in%  c("Given Object", "Given Subject"),], aes(group = interaction(response)),
+              size = 2) +
+    geom_point(alpha = 0.1, size = 2) +
+    geom_point(data = xagg[xagg$response %in%  c("Given Object", "Given Subject"),], 
+               size = 3, pch = 21, stroke = 1, color = "black") +
+    facet_grid(~ Condition) +
+    scale_colour_manual(values = c(ObjCompCol, TargetCol)) +
+    scale_fill_manual(values = c(ObjCompCol, TargetCol)) +
+    #scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(0,1)) +
+    labs(title = "Proportion of looks across conditions and windows",
+         subtitle = "semitransparent points and lines represent individual items\n",
+         y = "Proportion of fixation duration\n",
+         x = "\nTime window"
+    ) +
+    theme_classic() + 
+    theme(legend.position = "right",
+          legend.key.height = unit(2,"line"),
+          legend.title = element_blank(),
+          legend.text = element_text(size = 16),
+          legend.background = element_rect(fill = "transparent"),
+          strip.background = element_blank(),
+          strip.text = element_text(size = 16),
+          panel.spacing = unit(2, "lines"),
+          plot.background = element_rect(fill = "transparent", colour = NA),
+          panel.background = element_rect(fill = "transparent"),
+          axis.line.x = element_blank(),
+          axis.text.x = element_text(size = 16, angle = 45, hjust = 1),
+          axis.text.y = element_text(size = 16),
+          axis.title = element_text(size = 16, face = "bold"),
+          plot.title = element_text(size = 16, face = "bold"),
+          plot.margin = unit(c(1,1,1,1),"cm"))
