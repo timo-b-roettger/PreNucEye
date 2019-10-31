@@ -65,32 +65,28 @@ priors_gaze <- c(
 # model subject preference
 xmdl_subj <- brm(subj_preference ~ Condition * window * eyetrial.c + 
               # specify maximal model for IDs (no correlation assumed)
-              (1 | ID) + 
-              (0 + Condition * window * eyetrial.c | ID) + 
-              (1 | Target_obj) +
-              (0 + Condition * window | Target_obj),
+              (1 + Condition * window * eyetrial.c | ID) + 
+              (1 + Condition * window * eyetrial.c | Target_obj),
               family = "bernoulli", 
             inits = 0, 
             chains = 4,
-            iter = 2000,
+            iter = 4000,
             cores = 4,
-            control = list(adapt_delta = 0.9),
+            control = list(adapt_delta = 0.99),
             data = data)
 
 # model object preference
 xmdl_obj <- brm(obj_preference ~ Condition * window * eyetrial + 
                 # specify maximal model for IDs (no correlation assumed)
-                (1 | ID) + 
-                (0 + Condition * window * eyetrial.c | ID) + 
-                # intercept only for referent (do not expect much variability) 
-                (1 | Target_obj),
-                family = "binomial", 
-            inits = 0, 
-            chains = 4,
-            iter = 2000,
-            cores = 4,
-            control = list(adapt_delta = 0.9),
-            data = data)
+                  (1 + Condition * window * eyetrial.c | ID) + 
+                  (1 + Condition * window * eyetrial.c | Target_obj),
+                family = "bernoulli", 
+                inits = 0, 
+                chains = 4,
+                iter = 4000,
+                cores = 4,
+                control = list(adapt_delta = 0.99),
+                data = data)
 
 system("killall R")
 
