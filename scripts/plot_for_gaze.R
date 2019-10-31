@@ -81,17 +81,36 @@ data <- data %>%
 # aggregate proportions (per subject)
 xagg_subj <- data %>% 
   group_by(Condition, window, ID, response) %>% 
-  summarise(prop = mean(proportion, na.rm = T))
+  summarise(prop = mean(proportion, na.rm = T),
+            prenuc_onset = mean(prenuclear_onset, na.rm = T),
+            ref_onset = mean(referent_onset, na.rm = T),
+            adverb_onset = mean(adverb_onset, na.rm = T)) %>% 
+  mutate(window_dummy1 = prenuc_onset / 2,
+         window_dummy2 = ((ref_onset - prenuc_onset)/2) + prenuc_onset + 200,
+         window_dummy3 = ((adverb_onset - ref_onset)/2) + ref_onset + 200,
+         window_dummy4 = adverb_onset + 500 + 200,
+         window_dummy = ifelse(window == "early", window_dummy1,
+                               ifelse(window == "prenuclear", window_dummy2,
+                                      ifelse(window == "nuclear", window_dummy3, window_dummy4)
+))) %>% 
+  select(-window_dummy1, -window_dummy2, -window_dummy3, -window_dummy4)
 
 # aggregate proportions (per target tiem)
 xagg_item <- data %>% 
   group_by(Condition, window, Target_obj, response) %>% 
-  summarise(prop = mean(proportion, na.rm = T))
+  summarise(prop = mean(proportion, na.rm = T),
+            prenuc_onset = mean(prenuclear_onset, na.rm = T),
+            ref_onset = mean(referent_onset, na.rm = T),
+            adverb_onset = mean(adverb_onset, na.rm = T))
 
 # aggregate proportions (overall)
 xagg <- xagg_subj %>% 
   group_by(Condition, window, response) %>% 
-  summarise(prop = mean(prop, na.rm = T))
+  summarise(prop = mean(prop, na.rm = T),
+            prenuc_onset = mean(prenuc_onset, na.rm = T),
+            ref_onset = mean(ref_onset, na.rm = T),
+            adverb_onset = mean(adverb_onset, na.rm = T),
+            window_dummy = mean(window_dummy, na.rm = T))
 
 # aggregate proportions (per subject and trial_bin)
 xagg_subj_trialBin <- data %>% 
@@ -170,30 +189,61 @@ ggsave(filename = "Fix_agg_4responses.pdf",
        #bg = "transparent",
        dpi = 300)
 
+
+# store information for annotation
+xagg_text <- data.frame(Condition = unique(xagg$Condition))
+xagg_text$text_2 <- ifelse(xagg_text$Condition != "Object accent", "THINGY", "thingy")
+xagg_text$text_3 <- ifelse(xagg_text$Condition != "Subject accent", "BERRIES", "berries")
+xagg_text$text_4 <- ifelse(xagg_text$Condition == "Accent on both", "again", "instead")
+
+xagg_text <- xagg_text %>%   
+  gather(text, window, -Condition) %>% 
+  mutate(font_face = c("bold", "plain", "bold", "plain", "bold", 
+                       "bold", "plain", "plain", "plain"))
+
 # Plot aggregated fixations for Given Subject and Given Object only
-Fix_agg_2responses <- 
+#Fix_agg_2responses <- 
   ggplot(data = xagg_subj[xagg_subj$response %in%  c("Given Object", "Given Subject"),], 
-         aes(x = window, y = prop, color = response, fill = response)) +
+         aes(x = window_dummy, y = prop, color = response, fill = response)) +
+  geom_segment(x = mean(xagg_subj$prenuc_onset) + 200, xend = mean(xagg_subj$prenuc_onset) + 200, y = -Inf, yend = Inf, lty = "dashed", colour = "grey") +
+  geom_segment(x = mean(xagg_subj$ref_onset) + 200, xend = mean(xagg_subj$ref_onset) + 200, y = -Inf, yend = Inf, lty = "dashed", colour = "grey") +
+  geom_segment(x = mean(xagg_subj$adverb_onset) + 200, xend = mean(xagg_subj$adverb_onset) + 200, y = -Inf, yend = Inf, lty = "dashed", colour = "grey") +
   geom_segment(x = -Inf, y = 0.5, xend = Inf, yend = 0.5,
                lty = "dashed", size = 1, colour = "black") +
   geom_line(aes(group = interaction(ID, response)),
             alpha = 0.1, size = 1) +
   geom_line(data = xagg[xagg$response %in%  c("Given Object", "Given Subject"),], aes(group = interaction(response)),
             size = 2) +
-  geom_point(alpha = 0.1, size = 2) +
+  #geom_point(alpha = 0.1, size = 2) +
+  geom_errorbar(data = xagg[xagg$response %in%  c("Given Object", "Given Subject"),], 
+                  aes(ymin = prop - 0.1, ymax = prop + 0.1), colour = "black", width = 0.1) +
   geom_point(data = xagg[xagg$response %in%  c("Given Object", "Given Subject"),], 
              size = 3, pch = 21, stroke = 1, color = "black") +
-  facet_grid(~ Condition) +
+  facet_grid( ~ Condition) +
+  #facet_grid(Condition ~ .) +
   scale_colour_manual(values = c(ObjCompCol, TargetCol)) +
   scale_fill_manual(values = c(ObjCompCol, TargetCol)) +
-  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(0,1)) +
+  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(-0.2,1)) +
+  annotate("text", x = mean(xagg_subj$prenuc_onset)/2, y = -0.1, label = "Now click",
+           size  = 3) +
+  annotate("text", x = mean(xagg_subj$prenuc_onset)/2, y = -0.13, label = "on the",
+           size  = 3) +
+  geom_text(data = xagg_text[xagg_text$text == "text_2",], 
+            aes(label = window, fontface = font_face,), x = ((mean(xagg_subj$ref_onset) - mean(xagg_subj$prenuc_onset)) / 2) + mean(xagg_subj$prenuc_onset) + 200, 
+            y = -0.1, size = 5, inherit.aes = FALSE) + 
+  annotate("text", x = ((mean(xagg_subj$ref_onset) - mean(xagg_subj$prenuc_onset)) / 2) + mean(xagg_subj$prenuc_onset) + 200,
+           y = -0.13, label = "that dreams about the", size  = 3) +
+  geom_text(data = xagg_text[xagg_text$text == "text_3",], aes(label = window, fontface = font_face), x = ((mean(xagg_subj$adverb_onset) - mean(xagg_subj$ref_onset)) / 2) + mean(xagg_subj$ref_onset) + 200, 
+            y = -0.1, size = 5, inherit.aes = FALSE) + 
+  geom_text(data = xagg_text[xagg_text$text == "text_4",], aes(label = window), x =  mean(xagg_subj$adverb_onset) + 500, 
+            y = -0.1, size = 5, hjust = 0, inherit.aes = FALSE) + 
+  scale_x_continuous(expand = c(0, 0), limits = c(0,3500)) +
   labs(title = "Proportion of looks across conditions and windows",
        subtitle = "semitransparent points and lines represent individual participants\n",
-       y = "Proportion of fixation duration\n",
-       x = "\nTime window"
+       y = "Proportion of fixation duration\n"
   ) +
   theme_classic() + 
-  theme(legend.position = "right",
+  theme(legend.position = "bottom",
         legend.key.height = unit(2,"line"),
         legend.title = element_blank(),
         legend.text = element_text(size = 16),
@@ -203,12 +253,15 @@ Fix_agg_2responses <-
         panel.spacing = unit(2, "lines"),
         plot.background = element_rect(fill = "transparent", colour = NA),
         panel.background = element_rect(fill = "transparent"),
-        axis.line.x = element_blank(),
-        axis.text.x = element_text(size = 16, angle = 45, hjust = 1),
+        axis.line = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
         axis.text.y = element_text(size = 16),
-        axis.title = element_text(size = 16, face = "bold"),
+        axis.title.y = element_text(size = 16, face = "bold"),
+        axis.title.x = element_blank(),
         plot.title = element_text(size = 16, face = "bold"),
         plot.margin = unit(c(1,1,1,1),"cm"))
+
 
 # store plot 
 setwd("../plots/")
