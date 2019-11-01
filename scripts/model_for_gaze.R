@@ -71,7 +71,7 @@ xmdl_subj <- brm(subj_preference ~ Condition * window * eyetrial.c +
             inits = 0, 
             chains = 4,
             iter = 4000,
-            cores = 28,
+            cores = 4,
             control = list(adapt_delta = 0.99),
             data = data)
 
@@ -84,7 +84,7 @@ xmdl_obj <- brm(obj_preference ~ Condition * window * eyetrial +
                 inits = 0, 
                 chains = 4,
                 iter = 4000,
-                cores = 28,
+                cores = 4,
                 control = list(adapt_delta = 0.99),
                 data = data)
 
