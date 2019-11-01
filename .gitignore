@@ -5,3 +5,4 @@
 # too big for git -> can be derived by scripts
 plots/
 .DS_Store
+Bayesian_models.RData
