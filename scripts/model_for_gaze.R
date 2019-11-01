@@ -11,7 +11,7 @@
 #
 ##          Model the proportional preferences
 #
-## Version: 9/19/2019
+## Version: 11/1/2019
 
 
 #############
@@ -71,7 +71,7 @@ xmdl_subj <- brm(subj_preference ~ Condition * window * eyetrial.c +
             inits = 0, 
             chains = 4,
             iter = 4000,
-            cores = 4,
+            cores = 28,
             control = list(adapt_delta = 0.99),
             data = data)
 
@@ -84,7 +84,7 @@ xmdl_obj <- brm(obj_preference ~ Condition * window * eyetrial +
                 inits = 0, 
                 chains = 4,
                 iter = 4000,
-                cores = 4,
+                cores = 28,
                 control = list(adapt_delta = 0.99),
                 data = data)
 
@@ -93,7 +93,7 @@ system("killall R")
 ## save models for later use
 setwd("../models/")
 save(xmdl_subj, 
-     #xmdl_obj, 
+     xmdl_obj, 
      file = "Bayesian_models.RData")
 
 
