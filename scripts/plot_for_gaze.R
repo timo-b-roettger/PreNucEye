@@ -137,6 +137,9 @@ ObjCompCol = "#4dac26"
 SubjCompCol = "#b8e186"
 DistrCol = "#636363"
 
+# load posteriors
+setwd("../models/")
+load("posteriors.RData")
 
 # Plot aggregated fixations for 4 categories
 Fix_agg_4responses <- 
