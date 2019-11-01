@@ -13,7 +13,7 @@
 ##          proportions of duration per ROI, ROI image and role (i.e. target), and adds other columns to
 ##          facilitate analysis.
 #
-## Version: 10/30/2019
+## Version: 11/1/2019
 #
 #############
 ### Setup ###
@@ -117,14 +117,14 @@ data$excludeLargeError[data$ID %in% LargeErrorID] <- 1
 #########################
 
 ### Self-Reported Challenges
-## Vision    4, 18
+## Vision    4, 18, 40
 ## Hearing   -
 ## Reading   10, 18
 ## Learning  4, 10, 24
 ## Nat.Lang. 34
 
 # Exclude by participant ID
-excluded_IDs = c(4, 10, 18, 24, 34)
+excluded_IDs = c(4, 10, 18, 24, 34, 40)
 
 # Mark all rows from excluded participants
 data$surveyExclude = 0
