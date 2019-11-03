@@ -96,7 +96,9 @@ save(xmdl_subj,
      #xmdl_obj, 
      file = "Bayesian_models.RData")
 
-### Extract posteriors
+##########################
+### Extract posteriors ###
+##########################
 
 setwd("../models/")
 load("Bayesian_models.RData")
@@ -146,7 +148,7 @@ psamples_subj = posterior_samples(xmdl_subj) %>%
     diff_GG_nuc_adverb = GG_nuclear - GG_adverb
     )
 
-# define columns for loop
+# define columns for loop (subj_preference)
 col_names1 = c("CG_early", "GC_early", "GG_early",
               "CG_prenuc", "GC_prenuc", "GG_prenuc",
               "CG_nuclear", "GC_nuclear", "GG_nuclear",
@@ -160,7 +162,7 @@ col_names1 = c("CG_early", "GC_early", "GG_early",
               "diff_GG_early_prenuc", "diff_GG_prenuc_nuc", "diff_GG_nuc_adverb"
               )
 
-# create empty vectors
+# create empty vectors(subj_preference)
 name <- c()
 lci <- c()
 uci <- c()
@@ -168,7 +170,7 @@ mean <- c()
 probs <- c()
 
 
-# extract posterior means and 95% CIs in log odd space
+# extract posterior means and 95% CIs in log odd space (subj_preference)
 for (i in 1:length(col_names1)) {
   lci <- c(lci, round(coda::HPDinterval(as.mcmc(psamples_subj[[col_names1[i]]])), 2)[1])
   uci <- c(uci, round(coda::HPDinterval(as.mcmc(psamples_subj[[col_names1[i]]])), 2)[2])
@@ -177,21 +179,21 @@ for (i in 1:length(col_names1)) {
   probs <- c(probs, round(length(which(psamples_subj[[col_names1[i]]] < 0)) / length(psamples_subj[[col_names1[i]]]),2))
 }
 
-# save parameters
+# save parameters  (subj_preference)
 posteriors_1 = data.frame(name, lci, uci, mean, probs)
 
-posteriors_1$cond <- as.factor(c(rep(c("prenuclear", "nuclear", "both"), 8), rep("", 9 )))
-posteriors_1$window <- as.factor(c(rep(c("early", "prenuclear", "nuclear", "adverb"), each = 3), 
-                                   rep(c("early", "prenuclear", "nuclear", "adverb"), each = 3),
-                                 rep(c("diff_early_prenuc", "diff_prenuc_nuc", "diff_nuc_adverb"), 3)))
+posteriors_1$cond <- as.factor(c(rep(c("1st NP accent", "2nd NP accent", "Both NPs have accents"), 8), rep("", 9 )))
+posteriors_1$window <- as.factor(c(rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3), 
+                                   rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3),
+                                   rep(c("diff_early_1st", "diff_1st_2nd", "diff_2nd_adverb"), 3)))
 posteriors_1$type <- as.factor(c(rep("estimate", 12), rep("slope", 12), rep("diff", 9)))
 
 
-posteriors_1$window = factor(posteriors_1$window , levels = c("early", "prenuclear", "nuclear", "adverb",
-                                "diff_early_prenuc", "diff_prenuc_nuc", "diff_nuc_adverb"))
+posteriors_2$window = factor(posteriors_2$window , levels = c("early", "1st NP", "2nd NP", "adverb",
+                                                              "diff_early_1st", "diff_1st_2nd", "diff_2nd_adverb"))
 
 
-# extract posterior means and 95% CIs in logit space
+# extract posterior means and 95% CIs in logit space (subj_preference)
 # create empty vectors
 name <- c()
 lci <- c()
@@ -199,7 +201,7 @@ uci <- c()
 mean <- c()
 probs <- c()
 
-# loop through col_names1 to extract posterior mean, 95% CI and Pr(beta < 0)
+# loop through col_names1 to extract posterior mean, 95% CI and Pr(beta < 0)  (subj_preference)
 for (i in 1:length(col_names1)) {
   lci <- c(lci, round(plogis(coda::HPDinterval(as.mcmc(psamples_subj[[col_names1[i]]]))), 2)[1])
   uci <- c(uci, round(plogis(coda::HPDinterval(as.mcmc(psamples_subj[[col_names1[i]]]))), 2)[2])
@@ -208,29 +210,23 @@ for (i in 1:length(col_names1)) {
   probs <- c(probs, round(length(which(psamples_subj[[col_names1[i]]] < 0)) / length(psamples_subj[[col_names1[i]]]),2))
 }
 
-# save parameters
+# save parameters  (subj_preference)
 posteriors_2 = data.frame(name, lci, uci, mean, probs)
 
-posteriors_2$cond <- as.factor(c(rep(c("prenuclear", "nuclear", "both"), 8), rep("", 9 )))
-posteriors_2$window <- as.factor(c(rep(c("early", "prenuclear", "nuclear", "adverb"), each = 3), 
-                                   rep(c("early", "prenuclear", "nuclear", "adverb"), each = 3),
+posteriors_2$cond <- as.factor(c(rep(c("1st NP accent", "2nd NP accent", "Both NPs have accents"), 8), rep("", 9 )))
+posteriors_2$window <- as.factor(c(rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3), 
+                                   rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3),
                                    rep(c("diff_early_prenuc", "diff_prenuc_nuc", "diff_nuc_adverb"), 3)))
 posteriors_2$type <- as.factor(c(rep("estimate", 12), rep("slope", 12), rep("diff", 9)))
-posteriors_2$window = factor(posteriors_2$window , levels = c("early", "prenuclear", "nuclear", "adverb",
-                                                              "diff_early_prenuc", "diff_prenuc_nuc", "diff_nuc_adverb"))
+posteriors_2$window = factor(posteriors_2$window , levels = c("early", "1st NP", "2nd NP", "adverb",
+                                                              "diff_early_1st", "diff_1st_2nd", "diff_2nd_adverb"))
 
 posteriors_2 <- posteriors_2 %>% 
   filter(type == "estimate")
 
 
-# store posterior objects
-setwd("../models/")
-save(posteriors_1, 
-     posteriors_2, file = "posteriors.RData")
-
-
 ## extract posteriors for object preference
-psamples_subj = posterior_samples(xmdl_obj) %>% 
+psamples_obj = posterior_samples(xmdl_obj.prime) %>% 
   mutate(
     # calculate fixatins in the middle of experiment (eyetrial.c = 0)
     CG_early = b_Intercept,
@@ -274,7 +270,7 @@ psamples_subj = posterior_samples(xmdl_obj) %>%
     diff_GG_nuc_adverb = GG_nuclear - GG_adverb
   )
 
-# define columns for loop
+# define columns for loop (object preference)
 col_names1 = c("CG_early", "GC_early", "GG_early",
                "CG_prenuc", "GC_prenuc", "GG_prenuc",
                "CG_nuclear", "GC_nuclear", "GG_nuclear",
@@ -288,7 +284,7 @@ col_names1 = c("CG_early", "GC_early", "GG_early",
                "diff_GG_early_prenuc", "diff_GG_prenuc_nuc", "diff_GG_nuc_adverb"
 )
 
-# create empty vectors
+# create empty vectors (object preference)
 name <- c()
 lci <- c()
 uci <- c()
@@ -296,30 +292,30 @@ mean <- c()
 probs <- c()
 
 
-# extract posterior means and 95% CIs in log odd space
+# extract posterior means and 95% CIs in log odd space (object preference)
 for (i in 1:length(col_names1)) {
-  lci <- c(lci, round(coda::HPDinterval(as.mcmc(psamples_subj[[col_names1[i]]])), 2)[1])
-  uci <- c(uci, round(coda::HPDinterval(as.mcmc(psamples_subj[[col_names1[i]]])), 2)[2])
-  mean <- c(mean, round(mean(psamples_subj[[col_names1[i]]]), 2))
+  lci <- c(lci, round(coda::HPDinterval(as.mcmc(psamples_obj[[col_names1[i]]])), 2)[1])
+  uci <- c(uci, round(coda::HPDinterval(as.mcmc(psamples_obj[[col_names1[i]]])), 2)[2])
+  mean <- c(mean, round(mean(psamples_obj[[col_names1[i]]]), 2))
   name <- c(name, col_names1[i])
-  probs <- c(probs, round(length(which(psamples_subj[[col_names1[i]]] < 0)) / length(psamples_subj[[col_names1[i]]]),2))
+  probs <- c(probs, round(length(which(psamples_obj[[col_names1[i]]] < 0)) / length(psamples_obj[[col_names1[i]]]),2))
 }
 
-# save parameters
+# save parameters (object preference)
 posteriors_3 = data.frame(name, lci, uci, mean, probs)
 
-posteriors_3$cond <- as.factor(c(rep(c("prenuclear", "nuclear", "both"), 8), rep("", 9 )))
-posteriors_3$window <- as.factor(c(rep(c("early", "prenuclear", "nuclear", "adverb"), each = 3), 
-                                   rep(c("early", "prenuclear", "nuclear", "adverb"), each = 3),
-                                   rep(c("diff_early_prenuc", "diff_prenuc_nuc", "diff_nuc_adverb"), 3)))
+posteriors_3$cond <- as.factor(c(rep(c("1st NP accent", "2nd NP accent", "Both NPs have accents"), 8), rep("", 9 )))
+posteriors_3$window <- as.factor(c(rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3), 
+                                   rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3),
+                                   rep(c("diff_early_1st", "diff_1st_2nd", "diff_2nd_adverb"), 3)))
 posteriors_3$type <- as.factor(c(rep("estimate", 12), rep("slope", 12), rep("diff", 9)))
 
 
-posteriors_3$window = factor(posteriors_3$window , levels = c("early", "prenuclear", "nuclear", "adverb",
-                                                              "diff_early_prenuc", "diff_prenuc_nuc", "diff_nuc_adverb"))
+posteriors_3$window = factor(posteriors_3$window , levels = c("early", "1st NP", "2nd NP", "adverb",
+                                                              "diff_early_1st", "diff_1st_2nd", "diff_2nd_adverb"))
 
 
-# extract posterior means and 95% CIs in logit space
+# extract posterior means and 95% CIs in logit space (object preference)
 # create empty vectors
 name <- c()
 lci <- c()
@@ -327,45 +323,53 @@ uci <- c()
 mean <- c()
 probs <- c()
 
-# loop through col_names1 to extract posterior mean, 95% CI and Pr(beta < 0)
+# loop through col_names1 to extract posterior mean, 95% CI and Pr(beta < 0) (object preference)
 for (i in 1:length(col_names1)) {
-  lci <- c(lci, round(plogis(coda::HPDinterval(as.mcmc(psamples_subj[[col_names1[i]]]))), 2)[1])
-  uci <- c(uci, round(plogis(coda::HPDinterval(as.mcmc(psamples_subj[[col_names1[i]]]))), 2)[2])
-  mean <- c(mean, round(plogis(mean(psamples_subj[[col_names1[i]]])), 2))
+  lci <- c(lci, round(plogis(coda::HPDinterval(as.mcmc(psamples_obj[[col_names1[i]]]))), 2)[1])
+  uci <- c(uci, round(plogis(coda::HPDinterval(as.mcmc(psamples_obj[[col_names1[i]]]))), 2)[2])
+  mean <- c(mean, round(plogis(mean(psamples_obj[[col_names1[i]]])), 2))
   name <- c(name, col_names1[i])
-  probs <- c(probs, round(length(which(psamples_subj[[col_names1[i]]] < 0)) / length(psamples_subj[[col_names1[i]]]),2))
+  probs <- c(probs, round(length(which(psamples_obj[[col_names1[i]]] < 0)) / length(psamples_obj[[col_names1[i]]]),2))
 }
 
-# save parameters
+# save parameters (object preference)
 posteriors_4 = data.frame(name, lci, uci, mean, probs)
 
-posteriors_4$cond <- as.factor(c(rep(c("prenuclear", "nuclear", "both"), 8), rep("", 9 )))
-posteriors_4$window <- as.factor(c(rep(c("early", "prenuclear", "nuclear", "adverb"), each = 3), 
-                                   rep(c("early", "prenuclear", "nuclear", "adverb"), each = 3),
-                                   rep(c("diff_early_prenuc", "diff_prenuc_nuc", "diff_nuc_adverb"), 3)))
+posteriors_4$cond <- as.factor(c(rep(c("1st NP accent", "2nd NP accent", "Both NPs have accents"), 8), rep("", 9 )))
+posteriors_4$window <- as.factor(c(rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3), 
+                                   rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3),
+                                   rep(c("diff_early_1st", "diff_1st_2nd", "diff_2nd_adverb"), 3)))
 posteriors_4$type <- as.factor(c(rep("estimate", 12), rep("slope", 12), rep("diff", 9)))
-posteriors_4$window = factor(posteriors_4$window , levels = c("early", "prenuclear", "nuclear", "adverb",
-                                                              "diff_early_prenuc", "diff_prenuc_nuc", "diff_nuc_adverb"))
-
+posteriors_4$window = factor(posteriors_4$window , levels = c("early", "1st NP", "2nd NP", "adverb",
+                                                              "diff_early_1st", "diff_1st_2nd", "diff_2nd_adverb"))
 posteriors_4 <- posteriors_4 %>% 
   filter(type == "estimate")
 
+# combine posteriors into one data.frame
+posteriors_1$preference <- "Target 1st NP"
+posteriors_2$preference <- "Target 1st NP"
+posteriors_3$preference <- "Target 2nd NP"
+posteriors_4$preference <- "Target 2nd NP"
+
+posteriors_logit <- rbind(posteriors_1, posteriors_3)
+posteriors_prob <- rbind(posteriors_2, posteriors_4)
 
 # store posterior objects
 setwd("../models/")
 save(posteriors_1, posteriors_2, 
      posteriors_3, posteriors_4, 
+     posteriors_logit, posteriors_prob,
      file = "posteriors.RData")
 
 
 # plot quick and dirty - sanity check
-ggplot(posteriors_1[posteriors_1$type == "estimate",], aes(x = window, y = mean)) +
+ggplot(posteriors_prob[posteriors_prob$type == "estimate",], aes(x = window, y = mean)) +
   geom_segment(x = -Inf, y = 0.5, xend = Inf, yend = 0.5,
                lty = "dashed", size = 1, colour = "black") +
   geom_errorbar(aes(ymin = lci, ymax = uci), width = 0.2) +
   geom_line(aes(group = interaction(cond)), colour = "grey") +
   geom_point(size = 3) +
-  facet_grid(~cond) +
+  facet_grid(preference~cond) +
   #scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(0,1)) +
   labs(title = "Estimated preference of looks to given subject across conditions and windows",
        #subtitle = "semitransparent points and lines represent individual participants\n",
