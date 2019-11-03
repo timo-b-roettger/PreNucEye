@@ -13,7 +13,7 @@
 ##          proportions of duration per ROI, ROI image and role (i.e. target), and adds other columns to
 ##          facilitate analysis.
 #
-## Version: 10/30/2019
+## Version: 11/1/2019
 #
 #############
 ### Setup ###

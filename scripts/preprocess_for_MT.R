@@ -80,15 +80,17 @@ mtdata_2nd <- mt_remap_symmetric(
   remap_ypos = "no"
 )
 
-# Start-align
-mtdata_2nd <- mt_align_start(
+# start-align
+mtdata <- mt_align_start(
   mtdata_2nd,
   use = "trajectories",
-  save_as = "sn_trajectories",
+  save_as = "trajectories",
   dimensions = c("xpos", "ypos"),
   start = c(0, 0),
   verbose = FALSE
 )
+
+
 
 ## Subset Correct and Incorrect responses ####
 mtdata_2nd$data$responded_correct <- ifelse(mtdata_2nd$data$response_mt_maintrack_2nd_02 == mtdata_2nd$data$Target_pic, 1, 0) 
@@ -100,7 +102,7 @@ round(1- (sum((mtdata_2nd$data$responded_correct)) / n_before), digits = 2)
 # Time normalize
 mtdata_2nd <- mt_time_normalize(
   mtdata_2nd,
-  use = "sn_trajectories",
+  use = "trajectories",
   save_as = "tn_trajectories",
   dimensions = c("xpos", "ypos"),
   timestamps = "timestamps",
