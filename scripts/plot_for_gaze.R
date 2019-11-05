@@ -160,12 +160,15 @@ xagg_text$text_2 <- ifelse(xagg_text$Condition != "2nd NP accent", "THINGY", "th
 xagg_text$text_3 <- ifelse(xagg_text$Condition != "1st NP accent", "BERRIES", "berries")
 xagg_text$text_4 <- ifelse(xagg_text$Condition == "Both NPs have accents", "again", "instead")
 
+# store font face
 xagg_text <- xagg_text %>%   
   gather(position, text, -Condition) %>% 
   mutate(font_face = c("bold", "plain", "bold", "plain", "bold", "bold", "plain", "plain", "plain"))
 
+# rename columns for posteriors
 colnames(posteriors_prob) <- c("name", "lci", "uci", "proportion", "probability", "Condition", "window", "type", "response")
 
+# merge dfs for plot
 plot_df <- full_join(posteriors_prob, xagg[xagg$response %in% c("Target 1st NP", "Target 2nd NP"),]) %>% 
   full_join(xagg_text)
 
@@ -186,7 +189,6 @@ Fix_agg_2responses <-
             alpha = 0.1, size = 1) +
   geom_line(data = plot_df, aes(x = window_dummy, y = proportion, color = response, fill = response),
             size = 2) +
-  #geom_point(alpha = 0.1, size = 2) +
   geom_errorbar(data = plot_df, 
                   aes(x = window_dummy, ymin = lci, ymax = uci), 
                 colour = "black", width = 0.1, inherit.aes = FALSE) +
@@ -194,6 +196,7 @@ Fix_agg_2responses <-
               alpha = 0.3, colour = NA) +
   geom_point(data = plot_df, aes(x = window_dummy, y = proportion, color = response, fill = response),
              size = 3, pch = 21, stroke = 1, color = "black", inherit.aes = FALSE) +
+  geom_label(data = plot_df, aes(x = window_dummy, y = lci - 0.1, label = proportion), inherit.aes = FALSE) +
   facet_grid(response ~ Condition) +
   scale_colour_manual(values = c(ObjCompCol, TargetCol)) +
   scale_fill_manual(values = c(ObjCompCol, TargetCol)) +
@@ -251,58 +254,6 @@ ggsave(filename = "Fix_agg_2responses.pdf",
        dpi = 300)
 
 
-
-# Same with facetted response for better overview: 2 responses
-Fix_agg_4responses_facet <- 
-  ggplot(data = xagg_subj[!xagg_subj$response %in%  c("Given Object", "Given Subject"),], aes(x = window, y = prop, color = response, fill = response)) +
-  geom_segment(x = -Inf, y = 0.25, xend = Inf, yend = 0.25,
-               lty = "dashed", size = 1, colour = "black") +
-  geom_line(aes(group = interaction(ID, response)),
-            alpha = 0.1, size = 1) +
-  geom_line(data = xagg[!xagg$response %in%  c("Given Object", "Given Subject"),], aes(group = interaction(response)),
-            size = 2) +
-  geom_point(alpha = 0.1, size = 2) +
-  geom_point(data = xagg[!xagg$response %in%  c("Given Object", "Given Subject"),], 
-             size = 3, pch = 21, stroke = 1, color = "black") +
-  facet_grid(response ~ Condition) +
-  scale_colour_manual(values = c(DistrCol, ObjCompCol, SubjCompCol, TargetCol)) +
-  scale_fill_manual(values = c(DistrCol, ObjCompCol, SubjCompCol, TargetCol)) +
-  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(0,1)) +
-  labs(title = "Proportion of looks across conditions and windows",
-       subtitle = "semitransparent points and lines represent individual participants\n",
-       y = "Proportion of fixation duration\n",
-       x = "\nTime window"
-  ) +
-  theme_classic() + 
-  theme(legend.position = "right",
-        legend.key.height = unit(2,"line"),
-        legend.title = element_blank(),
-        legend.text = element_text(size = 16),
-        legend.background = element_rect(fill = "transparent"),
-        strip.background = element_blank(),
-        strip.text = element_text(size = 12),
-        panel.spacing = unit(2, "lines"),
-        plot.background = element_rect(fill = "transparent", colour = NA),
-        panel.background = element_rect(fill = "transparent"),
-        axis.line.x = element_blank(),
-        axis.text.x = element_text(size = 16, angle = 45, hjust = 1),
-        axis.text.y = element_text(size = 16),
-        axis.title = element_text(size = 16, face = "bold"),
-        plot.title = element_text(size = 16, face = "bold"),
-        plot.margin = unit(c(1,1,1,1),"cm"))
-
-# store plot 
-setwd("../plots/")
-ggsave(filename = "Fix_agg_4responses_facet.pdf",
-       plot = Fix_agg_4responses_facet,
-       device = "pdf",
-       width = 300, 
-       height = 250,
-       units = "mm",
-       #bg = "transparent",
-       dpi = 300)
-
-
 # Plot aggregated fixations for Given Subject and Given Object as a function of trial bin
 Fix_agg_2responses_trialBin <- 
   ggplot(data = xagg_subj_trialBin[xagg_subj_trialBin$response %in%  c("Given Object", "Given Subject"),], 
@@ -355,14 +306,7 @@ ggsave(filename = "Fix_agg_2responses_trialBin.pdf",
        dpi = 300)
 
 
-# Plot fixations as developing over time (ugly, but good so quickly assess)
-ggplot(data = data[!data$response %in%  c("Given Object", "Given Subject"),], aes(x = eyetrial, y = proportion, color = response, fill = response)) +
-  geom_line(aes(group = interaction(ID, response)), alpha = 0.05) +
-  geom_smooth(data = xagg_trials[!xagg_trials$response %in%  c("Given Object", "Given Subject"),], aes(y = prop, group = response)) +
-  facet_grid(window ~ Condition)
-              
-ggplot(data = data[data$response %in%  c("Given Object", "Given Subject"),], aes(x = eyetrial, y = proportion, color = response, fill = response)) +
-  geom_line(aes(group = interaction(ID, response)), alpha = 0.05) +
-  geom_smooth(data = xagg_trials[xagg_trials$response %in%  c("Given Object", "Given Subject"),], aes(y = prop, group = response)) +
-  facet_grid(window ~ Condition)
+###########
+## Table ##
+###########
 

@@ -93,7 +93,7 @@ system("killall R")
 ## save models for later use
 setwd("../models/")
 save(xmdl_subj, 
-     #xmdl_obj, 
+     xmdl_obj, 
      file = "Bayesian_models.RData")
 
 ##########################
