@@ -166,7 +166,7 @@ xagg_text <- xagg_text %>%
   mutate(font_face = c("bold", "plain", "bold", "plain", "bold", "bold", "plain", "plain", "plain"))
 
 # rename columns for posteriors
-colnames(posteriors_prob) <- c("name", "lci", "uci", "proportion", "probability", "Condition", "window", "type", "response")
+colnames(posteriors_prob) <- c("name", "lci", "uci", "proportion", "probability", "Condition", "window", "type", "time", "response")
 
 # merge dfs for plot
 plot_df <- full_join(posteriors_prob, xagg[xagg$response %in% c("Target 1st NP", "Target 2nd NP"),]) %>% 
@@ -187,32 +187,32 @@ Fix_agg_2responses <-
                lty = "dashed", size = 1, colour = "black") +
   geom_line(aes(group = interaction(ID, response)),
             alpha = 0.1, size = 1) +
-  geom_line(data = plot_df, aes(x = window_dummy, y = proportion, color = response, fill = response),
+  geom_line(data = plot_df[plot_df$time == "middle",], aes(x = window_dummy, y = proportion, color = response, fill = response),
             size = 2) +
-  geom_errorbar(data = plot_df, 
+  geom_errorbar(data = plot_df[plot_df$time == "middle",], 
                   aes(x = window_dummy, ymin = lci, ymax = uci), 
                 colour = "black", width = 0.1, inherit.aes = FALSE) +
-  geom_ribbon(data = plot_df, aes(ymin = lci, ymax = uci, fill = response), 
+  geom_ribbon(data = plot_df[plot_df$time == "middle",], aes(ymin = lci, ymax = uci, fill = response), 
               alpha = 0.3, colour = NA) +
-  geom_point(data = plot_df, aes(x = window_dummy, y = proportion, color = response, fill = response),
+  geom_point(data = plot_df[plot_df$time == "middle",], aes(x = window_dummy, y = proportion, color = response, fill = response),
              size = 3, pch = 21, stroke = 1, color = "black", inherit.aes = FALSE) +
-  geom_label(data = plot_df, aes(x = window_dummy, y = lci - 0.1, label = proportion), inherit.aes = FALSE) +
+  geom_label(data = plot_df[plot_df$time == "middle",], aes(x = window_dummy, y = lci - 0.1, label = proportion), inherit.aes = FALSE) +
   facet_grid(response ~ Condition) +
   scale_colour_manual(values = c(ObjCompCol, TargetCol)) +
   scale_fill_manual(values = c(ObjCompCol, TargetCol)) +
-  geom_text(data = plot_df,
+  geom_text(data = plot_df[plot_df$time == "middle",],
     aes(x = prenuc_onset/2), y = -0.1, label = "Now click", size  = 5, inherit.aes = FALSE) +
-  geom_text(data = plot_df,
+  geom_text(data = plot_df[plot_df$time == "middle",],
     aes(x = prenuc_onset/2), y = -0.15, label = "on the",size  = 5, inherit.aes = FALSE) +
-  geom_text(data = plot_df[plot_df$position == "text_2",],
+  geom_text(data = plot_df[plot_df$position == "text_2" & plot_df$time == "middle",],
             aes(label = text, fontface = font_face, x = ((ref_onset - prenuc_onset) / 2) + (prenuc_onset + 200)), 
             y = -0.1, size = 5, color = TargetCol, inherit.aes = FALSE) + 
   annotate("text", x = ((mean(xagg_subj$ref_onset) - mean(xagg_subj$prenuc_onset)) / 2) + mean(xagg_subj$prenuc_onset) + 200,
            y = -0.15, label = "that dreams about the", size  = 3) +
-  geom_text(data = plot_df[plot_df$position == "text_3",],
+  geom_text(data = plot_df[plot_df$position == "text_3" & plot_df$time == "middle",],
             aes(label = text, fontface = font_face, x = ((adverb_onset - ref_onset) / 2) + (ref_onset + 200)), 
             y = -0.1, size = 5, color = ObjCompCol, inherit.aes = FALSE) + 
-  geom_text(data = plot_df[plot_df$position == "text_4",], 
+  geom_text(data = plot_df[plot_df$position == "text_4" & plot_df$time == "middle",], 
             aes(label = text, fontface = font_face, x = adverb_onset + 500), 
             y = -0.1, size = 5, hjust = 0, inherit.aes = FALSE) + 
   scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(-0.2,1.1)) +
@@ -254,30 +254,68 @@ ggsave(filename = "Fix_agg_2responses.pdf",
        dpi = 300)
 
 
-# Plot aggregated fixations for Given Subject and Given Object as a function of trial bin
-Fix_agg_2responses_trialBin <- 
-  ggplot(data = xagg_subj_trialBin[xagg_subj_trialBin$response %in%  c("Given Object", "Given Subject"),], 
-         aes(x = window, y = prop, color = response, fill = response)) +
+## plot preferences for 1st NP Target or 2nd NP Target at the beginning and the end of the experiment
+
+
+ggplot(posteriors_prob[posteriors_prob$time != "middle",],
+       aes(x = window, y = proportion, color = response, fill = response, shape = time)) +
+  geom_point(size = 3, pch = 21, stroke = 1, color = "black", position = position_dodge(0.1)) +
+  facet_grid(response ~ Condition) +
+  geom_line(aes(group = interaction(response, Condition, time))) +
+  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(-0.2,1.1)) +
+  theme_classic() 
+
+
+
+
+ggplot(data = plot_df[plot_df$time != "middle",], 
+       aes(x = window_dummy, y = prop, color = response, fill = response)) +
+  geom_segment(data = xagg[xagg$response %in%  c("Target 2nd NP", "Target 1st NP"),],
+               aes(x = prenuc_onset + 200, xend = prenuc_onset + 200), y = -Inf, yend = Inf, lty = "dashed", colour = "grey") +
+  geom_segment(data = xagg[xagg$response %in%  c("Target 2nd NP", "Target 1st NP"),],
+               aes(x = ref_onset + 200, xend = ref_onset + 200), y = -Inf, yend = Inf, lty = "dashed", colour = "grey") +
+  geom_segment(data = xagg[xagg$response %in%  c("Target 2nd NP", "Target 1st NP"),],
+               aes(x = adverb_onset + 200, xend = adverb_onset + 200), y = -Inf, yend = Inf, lty = "dashed", colour = "grey") +
   geom_segment(x = -Inf, y = 0.5, xend = Inf, yend = 0.5,
                lty = "dashed", size = 1, colour = "black") +
-  geom_line(aes(group = interaction(ID, response)),
-            alpha = 0.05, size = 1) +
-  geom_line(data = xagg_trialBin[xagg_trialBin$response %in%  c("Given Object", "Given Subject"),], aes(group = interaction(response)),
-            size = 2) +
-  geom_point(alpha = 0.05, size = 2) +
-  geom_point(data = xagg_trialBin[xagg_trialBin$response %in%  c("Given Object", "Given Subject"),], 
-             size = 3, pch = 21, stroke = 1, color = "black") +
-  facet_grid(trial_bin~ Condition) +
+  # geom_line(data = plot_df[plot_df$time != "middle",], 
+  #           aes(x = window_dummy, y = proportion, color = response, lty = time,
+  #               group = interaction(response, Condition, time)),
+  #           size = 2) +
+  geom_errorbar(data = plot_df[plot_df$time != "middle",], 
+                aes(x = window_dummy, ymin = lci, ymax = uci), 
+                colour = "black", width = 0.1, inherit.aes = FALSE) +
+  #geom_ribbon(data = plot_df[plot_df$time != "middle",], 
+  #            aes(ymin = lci, ymax = uci, fill = response), 
+  #            alpha = 0.3, colour = NA) +
+  geom_point(data = plot_df[plot_df$time != "middle",], 
+             aes(x = window_dummy, y = proportion, color = response, fill = response),
+             size = 3, pch = 21, stroke = 1, color = "black", position = position_dodge(width = 0.7)) +
+  #geom_label(aes(x = window_dummy, y = lci - 0.1, label = proportion), inherit.aes = FALSE) +
+  facet_grid(response ~ Condition) +
   scale_colour_manual(values = c(ObjCompCol, TargetCol)) +
   scale_fill_manual(values = c(ObjCompCol, TargetCol)) +
-  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(0,1)) +
-  labs(title = "Proportion of looks across conditions and windows",
-       subtitle = "semitransparent points and lines represent individual participants\n",
-       y = "Proportion of fixation duration\n",
-       x = "\nTime window"
+  geom_text(aes(x = prenuc_onset/2), y = -0.1, label = "Now click", size  = 5, inherit.aes = FALSE) +
+  geom_text(aes(x = prenuc_onset/2), y = -0.15, label = "on the",size  = 5, inherit.aes = FALSE) +
+  geom_text(data = plot_df[plot_df$position == "text_2" & plot_df$time != "middle",],
+            aes(label = text, fontface = font_face, x = ((ref_onset - prenuc_onset) / 2) + (prenuc_onset + 200)), 
+            y = -0.1, size = 5, color = TargetCol, inherit.aes = FALSE) + 
+  annotate("text", x = ((mean(xagg_subj$ref_onset) - mean(xagg_subj$prenuc_onset)) / 2) + mean(xagg_subj$prenuc_onset) + 200,
+           y = -0.15, label = "that dreams about the", size  = 3) +
+  geom_text(data = plot_df[plot_df$position == "text_3" & plot_df$time != "middle",],
+            aes(label = text, fontface = font_face, x = ((adverb_onset - ref_onset) / 2) + (ref_onset + 200)), 
+            y = -0.1, size = 5, color = ObjCompCol, inherit.aes = FALSE) + 
+  geom_text(data = plot_df[plot_df$position == "text_4" & plot_df$time != "middle",],
+            aes(label = text, fontface = font_face, x = adverb_onset + 500), 
+            y = -0.1, size = 5, hjust = 0, inherit.aes = FALSE) + 
+  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(-0.2,1.1)) +
+  scale_x_continuous(expand = c(0, 0), limits = c(0,3500)) +
+  labs(title = "Average fixation preference across conditions and windows",
+       subtitle = "semitransparent lines represent averages of individual participants\n",
+       y = "Average fixation preference for target referents\n"
   ) +
   theme_classic() + 
-  theme(legend.position = "right",
+  theme(legend.position = "bottom",
         legend.key.height = unit(2,"line"),
         legend.title = element_blank(),
         legend.text = element_text(size = 16),
@@ -287,12 +325,16 @@ Fix_agg_2responses_trialBin <-
         panel.spacing = unit(2, "lines"),
         plot.background = element_rect(fill = "transparent", colour = NA),
         panel.background = element_rect(fill = "transparent"),
-        axis.line.x = element_blank(),
-        axis.text.x = element_text(size = 16, angle = 45, hjust = 1),
+        axis.line = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
         axis.text.y = element_text(size = 16),
-        axis.title = element_text(size = 16, face = "bold"),
+        axis.title.y = element_text(size = 16, face = "bold"),
+        axis.title.x = element_blank(),
         plot.title = element_text(size = 16, face = "bold"),
         plot.margin = unit(c(1,1,1,1),"cm"))
+
+
 
 # store plot 
 setwd("../plots/")

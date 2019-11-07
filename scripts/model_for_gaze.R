@@ -145,7 +145,36 @@ psamples_subj = posterior_samples(xmdl_subj) %>%
     
     diff_GG_early_prenuc = GG_early - GG_prenuc,
     diff_GG_prenuc_nuc = GG_prenuc - GG_nuclear,
-    diff_GG_nuc_adverb = GG_nuclear - GG_adverb
+    diff_GG_nuc_adverb = GG_nuclear - GG_adverb,
+    
+    # calculate posteriors for beginning of experiment 
+    CG_early_1st = CG_early + min(data$eyetrial.c) * CG_early_trial,
+    GC_early_1st = GC_early + min(data$eyetrial.c) * GC_early_trial,
+    GG_early_1st = GG_early + min(data$eyetrial.c) * GG_early_trial,
+    CG_prenuc_1st = CG_prenuc + min(data$eyetrial.c) * CG_prenuc_trial,
+    GC_prenuc_1st = GC_prenuc + min(data$eyetrial.c) * GC_prenuc_trial,
+    GG_prenuc_1st = GG_prenuc + min(data$eyetrial.c) * GG_prenuc_trial,
+    CG_nuclear_1st = CG_nuclear + min(data$eyetrial.c) * CG_nuclear_trial,
+    GC_nuclear_1st = GC_nuclear + min(data$eyetrial.c) * GC_nuclear_trial,
+    GG_nuclear_1st = GG_nuclear + min(data$eyetrial.c) * GG_nuclear_trial,
+    CG_adverb_1st = CG_adverb + min(data$eyetrial.c) * CG_adverb_trial,
+    GC_adverb_1st = GC_adverb + min(data$eyetrial.c) * GC_adverb_trial,
+    GG_adverb_1st = GG_adverb + min(data$eyetrial.c) * GG_adverb_trial,
+    
+    # calculate posteriors for end of experiment 
+    CG_early_last = CG_early + max(data$eyetrial.c) * CG_early_trial,
+    GC_early_last = GC_early + max(data$eyetrial.c) * GC_early_trial,
+    GG_early_last = GG_early + max(data$eyetrial.c) * GG_early_trial,
+    CG_prenuc_last = CG_prenuc + max(data$eyetrial.c) * CG_prenuc_trial,
+    GC_prenuc_last = GC_prenuc + max(data$eyetrial.c) * GC_prenuc_trial,
+    GG_prenuc_last = GG_prenuc + max(data$eyetrial.c) * GG_prenuc_trial,
+    CG_nuclear_last = CG_nuclear + max(data$eyetrial.c) * CG_nuclear_trial,
+    GC_nuclear_last = GC_nuclear + max(data$eyetrial.c) * GC_nuclear_trial,
+    GG_nuclear_last = GG_nuclear + max(data$eyetrial.c) * GG_nuclear_trial,
+    CG_adverb_last = CG_adverb + max(data$eyetrial.c) * CG_adverb_trial,
+    GC_adverb_last = GC_adverb + max(data$eyetrial.c) * GC_adverb_trial,
+    GG_adverb_last = GG_adverb + max(data$eyetrial.c) * GG_adverb_trial
+    
     )
 
 # define columns for loop (subj_preference)
@@ -159,7 +188,15 @@ col_names1 = c("CG_early", "GC_early", "GG_early",
               "CG_adverb_trial", "GC_adverb_trial", "GG_adverb_trial",
               "diff_CG_early_prenuc", "diff_CG_prenuc_nuc", "diff_CG_nuc_adverb",
               "diff_GC_early_prenuc", "diff_GC_prenuc_nuc", "diff_GC_nuc_adverb",
-              "diff_GG_early_prenuc", "diff_GG_prenuc_nuc", "diff_GG_nuc_adverb"
+              "diff_GG_early_prenuc", "diff_GG_prenuc_nuc", "diff_GG_nuc_adverb",
+              "CG_early_1st", "GC_early_1st", "GG_early_1st",
+              "CG_prenuc_1st", "GC_prenuc_1st", "GG_prenuc_1st",
+              "CG_nuclear_1st", "GC_nuclear_1st", "GG_nuclear_1st",
+              "CG_adverb_1st", "GC_adverb_1st", "GG_adverb_1st",
+              "CG_early_last", "GC_early_last", "GG_early_last",
+              "CG_prenuc_last", "GC_prenuc_last", "GG_prenuc_last",
+              "CG_nuclear_last", "GC_nuclear_last", "GG_nuclear_last",
+              "CG_adverb_last", "GC_adverb_last", "GG_adverb_last"
               )
 
 # create empty vectors(subj_preference)
@@ -182,16 +219,17 @@ for (i in 1:length(col_names1)) {
 # save parameters  (subj_preference)
 posteriors_1 = data.frame(name, lci, uci, mean, probs)
 
-posteriors_1$cond <- as.factor(c(rep(c("1st NP accent", "2nd NP accent", "Both NPs have accents"), 8), rep("", 9 )))
+posteriors_1$cond <- as.factor(c(rep(c("1st NP accent", "2nd NP accent", "Both NPs have accents"), 8), rep("", 9 ), rep(c("1st NP accent", "2nd NP accent", "Both NPs have accents"), 8)))
 posteriors_1$window <- as.factor(c(rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3), 
                                    rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3),
-                                   rep(c("diff_early_1st", "diff_1st_2nd", "diff_2nd_adverb"), 3)))
-posteriors_1$type <- as.factor(c(rep("estimate", 12), rep("slope", 12), rep("diff", 9)))
+                                   rep(c("diff_early_1st", "diff_1st_2nd", "diff_2nd_adverb"), 3),
+                                   rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3),
+                                   rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3)))
+posteriors_1$type <- as.factor(c(rep("estimate", 12), rep("slope", 12), rep("diff", 9), rep("estimate", 24)))
 
 
-posteriors_2$window = factor(posteriors_2$window , levels = c("early", "1st NP", "2nd NP", "adverb",
+posteriors_1$window = factor(posteriors_1$window , levels = c("early", "1st NP", "2nd NP", "adverb",
                                                               "diff_early_1st", "diff_1st_2nd", "diff_2nd_adverb"))
-
 
 # extract posterior means and 95% CIs in logit space (subj_preference)
 # create empty vectors
@@ -213,16 +251,23 @@ for (i in 1:length(col_names1)) {
 # save parameters  (subj_preference)
 posteriors_2 = data.frame(name, lci, uci, mean, probs)
 
-posteriors_2$cond <- as.factor(c(rep(c("1st NP accent", "2nd NP accent", "Both NPs have accents"), 8), rep("", 9 )))
+posteriors_2$cond <- as.factor(c(rep(c("1st NP accent", "2nd NP accent", "Both NPs have accents"), 8), rep("", 9 ), rep(c("1st NP accent", "2nd NP accent", "Both NPs have accents"), 8)))
 posteriors_2$window <- as.factor(c(rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3), 
                                    rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3),
-                                   rep(c("diff_early_prenuc", "diff_prenuc_nuc", "diff_nuc_adverb"), 3)))
-posteriors_2$type <- as.factor(c(rep("estimate", 12), rep("slope", 12), rep("diff", 9)))
+                                   rep(c("diff_early_1st", "diff_1st_2nd", "diff_2nd_adverb"), 3),
+                                   rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3),
+                                   rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3)))
+posteriors_2$type <- as.factor(c(rep("estimate", 12), rep("slope", 12), rep("diff", 9), rep("estimate", 24)))
+
+
 posteriors_2$window = factor(posteriors_2$window , levels = c("early", "1st NP", "2nd NP", "adverb",
                                                               "diff_early_1st", "diff_1st_2nd", "diff_2nd_adverb"))
 
 posteriors_2 <- posteriors_2 %>% 
   filter(type == "estimate")
+
+posteriors_2$time <- as.factor(rep(c("middle", "beginning", "end"), each = 12))
+
 
 
 ## extract posteriors for object preference
@@ -267,10 +312,39 @@ psamples_obj = posterior_samples(xmdl_obj.prime) %>%
     
     diff_GG_early_prenuc = GG_early - GG_prenuc,
     diff_GG_prenuc_nuc = GG_prenuc - GG_nuclear,
-    diff_GG_nuc_adverb = GG_nuclear - GG_adverb
+    diff_GG_nuc_adverb = GG_nuclear - GG_adverb,
+    
+    # calculate posteriors for beginning of experiment 
+    CG_early_1st = CG_early + min(data$eyetrial.c) * CG_early_trial,
+    GC_early_1st = GC_early + min(data$eyetrial.c) * GC_early_trial,
+    GG_early_1st = GG_early + min(data$eyetrial.c) * GG_early_trial,
+    CG_prenuc_1st = CG_prenuc + min(data$eyetrial.c) * CG_prenuc_trial,
+    GC_prenuc_1st = GC_prenuc + min(data$eyetrial.c) * GC_prenuc_trial,
+    GG_prenuc_1st = GG_prenuc + min(data$eyetrial.c) * GG_prenuc_trial,
+    CG_nuclear_1st = CG_nuclear + min(data$eyetrial.c) * CG_nuclear_trial,
+    GC_nuclear_1st = GC_nuclear + min(data$eyetrial.c) * GC_nuclear_trial,
+    GG_nuclear_1st = GG_nuclear + min(data$eyetrial.c) * GG_nuclear_trial,
+    CG_adverb_1st = CG_adverb + min(data$eyetrial.c) * CG_adverb_trial,
+    GC_adverb_1st = GC_adverb + min(data$eyetrial.c) * GC_adverb_trial,
+    GG_adverb_1st = GG_adverb + min(data$eyetrial.c) * GG_adverb_trial,
+    
+    # calculate posteriors for end of experiment 
+    CG_early_last = CG_early + max(data$eyetrial.c) * CG_early_trial,
+    GC_early_last = GC_early + max(data$eyetrial.c) * GC_early_trial,
+    GG_early_last = GG_early + max(data$eyetrial.c) * GG_early_trial,
+    CG_prenuc_last = CG_prenuc + max(data$eyetrial.c) * CG_prenuc_trial,
+    GC_prenuc_last = GC_prenuc + max(data$eyetrial.c) * GC_prenuc_trial,
+    GG_prenuc_last = GG_prenuc + max(data$eyetrial.c) * GG_prenuc_trial,
+    CG_nuclear_last = CG_nuclear + max(data$eyetrial.c) * CG_nuclear_trial,
+    GC_nuclear_last = GC_nuclear + max(data$eyetrial.c) * GC_nuclear_trial,
+    GG_nuclear_last = GG_nuclear + max(data$eyetrial.c) * GG_nuclear_trial,
+    CG_adverb_last = CG_adverb + max(data$eyetrial.c) * CG_adverb_trial,
+    GC_adverb_last = GC_adverb + max(data$eyetrial.c) * GC_adverb_trial,
+    GG_adverb_last = GG_adverb + max(data$eyetrial.c) * GG_adverb_trial
+    
   )
 
-# define columns for loop (object preference)
+# define columns for loop (obj preference)
 col_names1 = c("CG_early", "GC_early", "GG_early",
                "CG_prenuc", "GC_prenuc", "GG_prenuc",
                "CG_nuclear", "GC_nuclear", "GG_nuclear",
@@ -281,7 +355,15 @@ col_names1 = c("CG_early", "GC_early", "GG_early",
                "CG_adverb_trial", "GC_adverb_trial", "GG_adverb_trial",
                "diff_CG_early_prenuc", "diff_CG_prenuc_nuc", "diff_CG_nuc_adverb",
                "diff_GC_early_prenuc", "diff_GC_prenuc_nuc", "diff_GC_nuc_adverb",
-               "diff_GG_early_prenuc", "diff_GG_prenuc_nuc", "diff_GG_nuc_adverb"
+               "diff_GG_early_prenuc", "diff_GG_prenuc_nuc", "diff_GG_nuc_adverb",
+               "CG_early_1st", "GC_early_1st", "GG_early_1st",
+               "CG_prenuc_1st", "GC_prenuc_1st", "GG_prenuc_1st",
+               "CG_nuclear_1st", "GC_nuclear_1st", "GG_nuclear_1st",
+               "CG_adverb_1st", "GC_adverb_1st", "GG_adverb_1st",
+               "CG_early_last", "GC_early_last", "GG_early_last",
+               "CG_prenuc_last", "GC_prenuc_last", "GG_prenuc_last",
+               "CG_nuclear_last", "GC_nuclear_last", "GG_nuclear_last",
+               "CG_adverb_last", "GC_adverb_last", "GG_adverb_last"
 )
 
 # create empty vectors (object preference)
@@ -304,16 +386,17 @@ for (i in 1:length(col_names1)) {
 # save parameters (object preference)
 posteriors_3 = data.frame(name, lci, uci, mean, probs)
 
-posteriors_3$cond <- as.factor(c(rep(c("1st NP accent", "2nd NP accent", "Both NPs have accents"), 8), rep("", 9 )))
+posteriors_3$cond <- as.factor(c(rep(c("1st NP accent", "2nd NP accent", "Both NPs have accents"), 8), rep("", 9 ), rep(c("1st NP accent", "2nd NP accent", "Both NPs have accents"), 8)))
 posteriors_3$window <- as.factor(c(rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3), 
                                    rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3),
-                                   rep(c("diff_early_1st", "diff_1st_2nd", "diff_2nd_adverb"), 3)))
-posteriors_3$type <- as.factor(c(rep("estimate", 12), rep("slope", 12), rep("diff", 9)))
+                                   rep(c("diff_early_1st", "diff_1st_2nd", "diff_2nd_adverb"), 3),
+                                   rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3),
+                                   rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3)))
+posteriors_3$type <- as.factor(c(rep("estimate", 12), rep("slope", 12), rep("diff", 9), rep("estimate", 24)))
 
 
 posteriors_3$window = factor(posteriors_3$window , levels = c("early", "1st NP", "2nd NP", "adverb",
                                                               "diff_early_1st", "diff_1st_2nd", "diff_2nd_adverb"))
-
 
 # extract posterior means and 95% CIs in logit space (object preference)
 # create empty vectors
@@ -335,15 +418,23 @@ for (i in 1:length(col_names1)) {
 # save parameters (object preference)
 posteriors_4 = data.frame(name, lci, uci, mean, probs)
 
-posteriors_4$cond <- as.factor(c(rep(c("1st NP accent", "2nd NP accent", "Both NPs have accents"), 8), rep("", 9 )))
+posteriors_4$cond <- as.factor(c(rep(c("1st NP accent", "2nd NP accent", "Both NPs have accents"), 8), rep("", 9 ), rep(c("1st NP accent", "2nd NP accent", "Both NPs have accents"), 8)))
 posteriors_4$window <- as.factor(c(rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3), 
                                    rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3),
-                                   rep(c("diff_early_1st", "diff_1st_2nd", "diff_2nd_adverb"), 3)))
-posteriors_4$type <- as.factor(c(rep("estimate", 12), rep("slope", 12), rep("diff", 9)))
+                                   rep(c("diff_early_1st", "diff_1st_2nd", "diff_2nd_adverb"), 3),
+                                   rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3),
+                                   rep(c("early", "1st NP", "2nd NP", "adverb"), each = 3)))
+posteriors_4$type <- as.factor(c(rep("estimate", 12), rep("slope", 12), rep("diff", 9), rep("estimate", 24)))
+
+
 posteriors_4$window = factor(posteriors_4$window , levels = c("early", "1st NP", "2nd NP", "adverb",
                                                               "diff_early_1st", "diff_1st_2nd", "diff_2nd_adverb"))
+
 posteriors_4 <- posteriors_4 %>% 
   filter(type == "estimate")
+
+posteriors_4$time <- as.factor(rep(c("middle", "beginning", "end"), each = 12))
+
 
 # combine posteriors into one data.frame
 posteriors_1$preference <- "Target 1st NP"
