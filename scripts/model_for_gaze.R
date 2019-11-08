@@ -271,7 +271,7 @@ posteriors_2$time <- as.factor(rep(c("middle", "beginning", "end"), each = 12))
 
 
 ## extract posteriors for object preference
-psamples_obj = posterior_samples(xmdl_obj.prime) %>% 
+psamples_obj = posterior_samples(xmdl_obj) %>% 
   mutate(
     # calculate fixatins in the middle of experiment (eyetrial.c = 0)
     CG_early = b_Intercept,
