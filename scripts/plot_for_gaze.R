@@ -22,6 +22,7 @@ library(tidyverse)
 library(ggbeeswarm)
 library(rstudioapi)
 # library(ggpubr)
+library(see)
 
 ## Getting the path of your current open file
 datapath = rstudioapi::getActiveDocumentContext()$path 
@@ -226,7 +227,7 @@ Fix_agg_2responses <-
             y = -0.1, size = 5, hjust = 0, inherit.aes = FALSE) + 
   scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(-0.2,1.1)) +
   scale_x_continuous(expand = c(0, 0), limits = c(0,3500)) +
-  labs(title = "Average fixation preference across conditions and windows",
+  labs(title = "Fixation preference across conditions and windows",
        subtitle = "semitransparent lines represent averages of individual participants\n",
        y = "Average fixation preference for target referents\n"
   ) +
@@ -250,7 +251,6 @@ Fix_agg_2responses <-
         plot.title = element_text(size = 16, face = "bold"),
         plot.margin = unit(c(1,1,1,1),"cm"))
 
-
 # store plot 
 setwd("../plots/")
 ggsave(filename = "Fix_agg_2responses.pdf",
@@ -263,14 +263,97 @@ ggsave(filename = "Fix_agg_2responses.pdf",
        dpi = 300)
 
 
+## plot simple comparison between baseline and prenuclear window
+Fix_agg_simple <- 
+ggplot(data = xagg_subj[xagg_subj$response %in%  c("Target 2nd NP", "Target 1st NP") & 
+                          xagg_subj$window %in% c("early", "1st NP"),], 
+       aes(x = window, y = prop, color = response, fill = response)) +
+  facet_grid(response ~ Condition) +
+  #geom_quasirandom(width = 0.2, alpha = 0.1, size = 1) +
+  geom_segment(data = plot_df[plot_df$time == "middle" & plot_df$window %in% c("early"),],
+               aes(y = proportion, yend = proportion), x = -Inf, xend = Inf, lty = "dashed", color = "grey") +
+  geom_line(aes(group = interaction(ID, response)),
+            alpha = 0.1, size = 1) +
+  geom_line(data = plot_df[plot_df$time == "middle" & plot_df$window %in% c("early", "1st NP"),], 
+            aes(x = window, y = proportion, color = response, group = 1),
+            size = 2) +
+  geom_errorbar(data = plot_df[plot_df$time == "middle" & plot_df$window %in% c("early", "1st NP"),], 
+                aes(x = window, ymin = lci, ymax = uci), 
+                colour = "black", width = 0.1, inherit.aes = FALSE) +
+  geom_point(data = plot_df[plot_df$time == "middle" & plot_df$window %in% c("early", "1st NP"),], 
+             aes(x = window, y = proportion, fill = response),
+             size = 3, pch = 21, stroke = 1, inherit.aes = FALSE, 
+             color = "black") +
+  scale_colour_manual(values = c(ObjCompCol, TargetCol)) +
+  scale_fill_manual(values = c(TargetCol, ObjCompCol)) +
+  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(0,1)) +
+  labs(title = "Average fixation preference across conditions and windows",
+       subtitle = "semitransparent lines represent averages of individual participants\n",
+       y = "Average fixation preference for target referents\n"
+  ) +
+  theme_classic() + 
+  theme(legend.position = "none",
+        legend.key.height = unit(2,"line"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 16),
+        legend.background = element_rect(fill = "transparent"),
+        strip.background = element_blank(),
+        strip.text = element_text(size = 16),
+        panel.spacing = unit(2, "lines"),
+        plot.background = element_rect(fill = "transparent", colour = NA),
+        panel.background = element_rect(fill = "transparent"),
+        axis.line = element_blank(),
+        axis.text = element_text(size = 16),
+        axis.title.y = element_text(size = 16, face = "bold"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(size = 16, face = "bold"),
+        panel.border = element_rect(colour = "black", fill = NA), 
+        plot.margin = unit(c(1,1,1,1),"cm"))
+
+# store plot 
+setwd("../plots/")
+ggsave(filename = "Fix_agg_simple.pdf",
+       plot = Fix_agg_simple,
+       device = "pdf",
+       width = 250, 
+       height = 200,
+       units = "mm",
+       #bg = "transparent",
+       dpi = 300)
+
+
 ## plot preferences for 1st NP Target or 2nd NP Target at the beginning and the end of the experiment
 
+data_trial_sub <- data %>% 
+  filter(Condition == "Both NPs have accents", 
+           response %in% c("Target","Subject Competitor", "Object Competitor",  "Distractor"),
+         ) %>% 
+  group_by(trial_bin, ID, window, response) %>% 
+  summarise(proportion = mean(proportion)) %>% 
+  mutate(time = trial_bin)
 
-ggplot(posteriors_prob,
-       aes(x = window, y = proportion, color = response, fill = response, shape = time)) +
-  geom_point(size = 3, pch = 21, stroke = 1, color = "black", position = position_dodge(0.1)) +
-  facet_grid(response ~ Condition) +
-  geom_line(aes(lty = time ,group = interaction(response, Condition, time))) +
+data_trial_item <- data %>% 
+  filter(Condition == "Both NPs have accents", 
+         response %in% c("Target","Subject Competitor", "Object Competitor",  "Distractor"),
+  ) %>% 
+  group_by(trial_bin, Target_obj, window, response) %>% 
+  summarise(proportion = mean(proportion)) %>% 
+  mutate(time = trial_bin)
+
+data_trial_agg <- data_trial_sub %>% 
+  group_by(trial_bin, window, response) %>% 
+  summarise(proportion = mean(proportion)) %>% 
+  mutate(time = trial_bin)
+
+
+ggplot(data_trial_sub,
+       aes(x = window, y = proportion)) +
+  geom_point(size = 1, pch = 21, stroke = 1, color = "black", alpha = 0.3, position = position_dodge(0.1)) +
+  geom_line(aes(group = ID), color = "grey", alpha = 0.3) + 
+  geom_point(data = data_trial_agg, size = 5) +
+  geom_line(data = data_trial_agg, aes(group = 1), color = "black") +
+  facet_wrap(time ~ response) +
+  #geom_line(aes(lty = time ,group = interaction(response, Condition, time))) +
   scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(-0.2,1.1)) +
   theme_classic() 
 
@@ -401,3 +484,72 @@ ggplot(data = xagg_item[xagg_item$response %in%  c("Given Subject"),],
        y = "Average fixation preference for target referents\n"
   ) +
   theme_classic() 
+
+
+
+
+
+ggplot(data = xagg_item[xagg_item$response %in%  c("Given Subject"),], 
+       aes(x = window_dummy, y = prop, color = response, fill = response)) +
+  geom_line(aes(group = interaction(Target_obj, response)),
+            alpha = 0.1, size = 1) +
+  # geom_point(data = xagg[xagg$response %in%  c("Given Object", "Given Subject"),], aes(x = window_dummy, y = prop, color = response, fill = response),
+  #            size = 3, pch = 21, stroke = 1, color = "black", inherit.aes = FALSE) +
+  # geom_line(data = xagg[xagg$response %in%  c("Given Object", "Given Subject"),],
+  #           aes(group = interaction(response)),
+  #           size = 1) +
+  geom_label(aes(label = Target_obj, colour = "white"), fill = NA) +
+  facet_grid( ~ Condition) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0.5,1)) +
+  scale_x_continuous(expand = c(0, 0), limits = c(0,3500)) +
+  labs(title = "Average fixation preference across conditions and windows",
+       subtitle = "semitransparent lines represent averages of individual participants\n",
+       y = "Average fixation preference for target referents\n"
+  ) +
+  theme_classic() 
+
+
+
+
+
+ggplot(data = xagg_subj[xagg_subj$response %in%  c("Target", "Distractor", "Object Competitor", "Subject Competitor") & 
+                          xagg_subj$window %in% c("early", "1st NP"),], 
+       aes(x = window, y = prop, color = response, fill = response)) +
+  facet_grid(response ~ Condition) +
+  #geom_quasirandom(width = 0.2, alpha = 0.1, size = 1) +
+  geom_line(aes(group = interaction(ID, response)),
+            alpha = 0.1, size = 1) +
+  geom_line(data = xagg[xagg$response %in%  c("Target", "Distractor", "Object Competitor", "Subject Competitor") & xagg$window %in% c("early", "1st NP"),], 
+            aes(x = window, y = prop, color = response, group = 1),
+            size = 2) +
+  geom_point(data = xagg[xagg$response %in%  c("Target", "Distractor", "Object Competitor", "Subject Competitor") & xagg$window %in% c("early", "1st NP"),], 
+             aes(x = window, y = prop, fill = response),
+             size = 3, pch = 21, stroke = 1, inherit.aes = FALSE, 
+             color = "black") +
+  scale_colour_manual(values = c(ObjCompCol, TargetCol)) +
+  scale_fill_manual(values = c(TargetCol, ObjCompCol)) +
+  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(0,1)) +
+  labs(title = "Average fixation preference across conditions and windows",
+       subtitle = "semitransparent lines represent averages of individual participants\n",
+       y = "Average fixation preference for target referents\n"
+  ) +
+  theme_classic() + 
+  theme(legend.position = "none",
+        legend.key.height = unit(2,"line"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 16),
+        legend.background = element_rect(fill = "transparent"),
+        strip.background = element_blank(),
+        strip.text = element_text(size = 16),
+        panel.spacing = unit(2, "lines"),
+        plot.background = element_rect(fill = "transparent", colour = NA),
+        panel.background = element_rect(fill = "transparent"),
+        axis.line = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.y = element_text(size = 16),
+        axis.title.y = element_text(size = 16, face = "bold"),
+        axis.title.x = element_blank(),
+        plot.title = element_text(size = 16, face = "bold"),
+        panel.border = element_rect(colour = "black", fill = NA), 
+        plot.margin = unit(c(1,1,1,1),"cm"))

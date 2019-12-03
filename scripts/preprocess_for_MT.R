@@ -137,7 +137,7 @@ mtdata_2nd <- mt_measures(
 results <- mt_export_long(
   mtdata_2nd,
   use = "measures",
-  use_variables = c("initiation_time", "AUC", "RT"),
+  use_variables = c("initiation_time", "AUC", "RT", "acc_max", "acc_max_time", "vel_max", "vel_max_time"),
   use2_variables = c("subject_nr", "Condition", "Target_subj", "Target_obj", "Target_pic",  
                      "Target_pos", "responded_correct")
  )
