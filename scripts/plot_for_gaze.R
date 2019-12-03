@@ -61,7 +61,7 @@ data <- data %>%
 
 # Gather proportional values
 data <- data %>% 
-  gather(response, proportion, c(8:13, 24:25)) 
+  gather(response, proportion, c(8:13, 25:26)) 
 
 # Rename response levels
 data <- data %>% 
@@ -112,7 +112,16 @@ xagg_item <- data %>%
   summarise(prop = mean(proportion, na.rm = T),
             prenuc_onset = mean(prenuclear_onset, na.rm = T),
             ref_onset = mean(referent_onset, na.rm = T),
-            adverb_onset = mean(adverb_onset, na.rm = T))
+            adverb_onset = mean(adverb_onset, na.rm = T)) %>% 
+  mutate(window_dummy1 = prenuc_onset / 2,
+         window_dummy2 = ((ref_onset - prenuc_onset)/2) + prenuc_onset + 200,
+         window_dummy3 = ((adverb_onset - ref_onset)/2) + ref_onset + 200,
+         window_dummy4 = adverb_onset + 500 + 200,
+         window_dummy = ifelse(window == "early", window_dummy1,
+                               ifelse(window == "1st NP", window_dummy2,
+                                      ifelse(window == "2nd NP", window_dummy3, window_dummy4)))) %>% 
+  select(-window_dummy1, -window_dummy2, -window_dummy3, -window_dummy4)
+
 
 # aggregate proportions (overall)
 xagg <- xagg_subj %>% 
@@ -257,11 +266,11 @@ ggsave(filename = "Fix_agg_2responses.pdf",
 ## plot preferences for 1st NP Target or 2nd NP Target at the beginning and the end of the experiment
 
 
-ggplot(posteriors_prob[posteriors_prob$time != "middle",],
+ggplot(posteriors_prob,
        aes(x = window, y = proportion, color = response, fill = response, shape = time)) +
   geom_point(size = 3, pch = 21, stroke = 1, color = "black", position = position_dodge(0.1)) +
   facet_grid(response ~ Condition) +
-  geom_line(aes(group = interaction(response, Condition, time))) +
+  geom_line(aes(lty = time ,group = interaction(response, Condition, time))) +
   scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(-0.2,1.1)) +
   theme_classic() 
 
@@ -352,3 +361,43 @@ ggsave(filename = "Fix_agg_2responses_trialBin.pdf",
 ## Table ##
 ###########
 
+
+
+ggplot(data = xagg_subj[xagg_subj$response %in%  c("Given Object", "Given Subject"),], 
+       aes(x = window_dummy, y = prop, color = response, fill = response)) +
+  geom_line(aes(group = interaction(ID, response)),
+            alpha = 0.1, size = 1) +
+  geom_point(data = xagg[xagg$response %in%  c("Given Object", "Given Subject"),], aes(x = window_dummy, y = prop, color = response, fill = response),
+             size = 3, pch = 21, stroke = 1, color = "black", inherit.aes = FALSE) +
+  geom_line(data = xagg[xagg$response %in%  c("Given Object", "Given Subject"),],
+            aes(group = interaction(response)),
+            size = 1) +
+  facet_grid( ~ Condition) +
+  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(-0.2,1.1)) +
+  scale_x_continuous(expand = c(0, 0), limits = c(0,3500)) +
+  labs(title = "Average fixation preference across conditions and windows",
+       subtitle = "semitransparent lines represent averages of individual participants\n",
+       y = "Average fixation preference for target referents\n"
+  ) +
+  theme_classic() 
+
+
+
+ggplot(data = xagg_item[xagg_item$response %in%  c("Given Subject"),], 
+       aes(x = window_dummy, y = prop, color = response, fill = response)) +
+  geom_line(aes(group = interaction(Target_obj, response)),
+            alpha = 0.1, size = 1) +
+  # geom_point(data = xagg[xagg$response %in%  c("Given Object", "Given Subject"),], aes(x = window_dummy, y = prop, color = response, fill = response),
+  #            size = 3, pch = 21, stroke = 1, color = "black", inherit.aes = FALSE) +
+  # geom_line(data = xagg[xagg$response %in%  c("Given Object", "Given Subject"),],
+  #           aes(group = interaction(response)),
+  #           size = 1) +
+   geom_label(aes(label = Target_obj, colour = "white"), fill = NA) +
+  facet_grid( ~ Condition) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0.5,1)) +
+  scale_x_continuous(expand = c(0, 0), limits = c(0,3500)) +
+  labs(title = "Average fixation preference across conditions and windows",
+       subtitle = "semitransparent lines represent averages of individual participants\n",
+       y = "Average fixation preference for target referents\n"
+  ) +
+  theme_classic() 

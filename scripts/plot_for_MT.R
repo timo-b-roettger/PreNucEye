@@ -74,6 +74,10 @@ xagg <-
   group_by(steps, Condition, Target_pos) %>%
   summarise(mean_xpos = mean(xpos, na.rm = T),
             mean_ypos = mean(ypos, na.rm = T),
+            mean_acc_max = mean(acc_max, na.rm = T),
+            mean_acc_max_time = mean(acc_max_time, na.rm = T),
+            mean_vel_max = mean(vel_max, na.rm = T),
+            mean_vel_max_time = mean(vel_max_time, na.rm = T),
             mean_time = mean(timestamps, na.rm = T),
             mean_prenuc = mean(prenuclear_onset),
             mean_ref = mean(referent_onset),
@@ -91,6 +95,10 @@ xagg_r_subjects <-
   summarise(mean_xpos = mean(xpos_r, na.rm = T),
             mean_ypos = mean(ypos_r, na.rm = T),
             mean_time = mean(timestamps, na.rm = T),
+            mean_acc_max = mean(acc_max, na.rm = T),
+            mean_acc_max_time = mean(acc_max_time, na.rm = T),
+            mean_vel_max = mean(vel_max, na.rm = T),
+            mean_vel_max_time = mean(vel_max_time, na.rm = T),
             mean_prenuc = mean(prenuclear_onset),
             mean_ref = mean(referent_onset),
             mean_adv = mean(adverb_onset))
@@ -102,6 +110,10 @@ xagg_r <-
   summarise(mean_xpos = mean(xpos_r, na.rm = T),
             mean_ypos = mean(ypos_r, na.rm = T),
             mean_time = mean(timestamps, na.rm = T),
+            mean_acc_max = mean(acc_max, na.rm = T),
+            mean_acc_max_time = mean(acc_max_time, na.rm = T),
+            mean_vel_max = mean(vel_max, na.rm = T),
+            mean_vel_max_time = mean(vel_max_time, na.rm = T),
             mean_prenuc = mean(prenuclear_onset),
             mean_ref = mean(referent_onset),
             mean_adv = mean(adverb_onset))
@@ -287,6 +299,16 @@ ggplot(xagg_r, aes(x = mean_time, y = -mean_ypos, colour = Condition, fill = Con
   theme_traj_time + 
   theme(strip.text.y = element_blank())
 
+
+
+############################
+## plotting velocity max ##
+############################
+
+
+#################
+## store plots ##
+#################
 
 # store plot 
 setwd("../plots/")
