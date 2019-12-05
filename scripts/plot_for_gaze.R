@@ -325,34 +325,37 @@ ggsave(filename = "Fix_agg_simple.pdf",
 ## plot preferences for 1st NP Target or 2nd NP Target at the beginning and the end of the experiment
 
 data_trial_sub <- data %>% 
-  filter(Condition == "Both NPs have accents", 
+  filter(Condition %in% c("Both NPs have accents", "1st NP accent"), 
            response %in% c("Target","Subject Competitor", "Object Competitor",  "Distractor"),
          ) %>% 
-  group_by(trial_bin, ID, window, response) %>% 
-  summarise(proportion = mean(proportion)) %>% 
-  mutate(time = trial_bin)
+  group_by(Target_obj, window, response, Condition) %>% 
+  summarise(proportion = mean(proportion)) 
+#%>% 
+#  mutate(time = trial_bin)
 
 data_trial_item <- data %>% 
-  filter(Condition == "Both NPs have accents", 
+  filter(Condition %in% c("Both NPs have accents", "1st NP accent"),
          response %in% c("Target","Subject Competitor", "Object Competitor",  "Distractor"),
   ) %>% 
-  group_by(trial_bin, Target_obj, window, response) %>% 
-  summarise(proportion = mean(proportion)) %>% 
-  mutate(time = trial_bin)
+  group_by(Condition, Target_obj, window, response) %>% 
+  summarise(proportion = mean(proportion)) 
+#%>% 
+#  mutate(time = trial_bin)
 
 data_trial_agg <- data_trial_sub %>% 
-  group_by(trial_bin, window, response) %>% 
-  summarise(proportion = mean(proportion)) %>% 
-  mutate(time = trial_bin)
+  group_by(window, response, Condition) %>% 
+  summarise(proportion = mean(proportion))
+#%>% 
+#  mutate(time = trial_bin)
 
 
 ggplot(data_trial_sub,
        aes(x = window, y = proportion)) +
   geom_point(size = 1, pch = 21, stroke = 1, color = "black", alpha = 0.3, position = position_dodge(0.1)) +
-  geom_line(aes(group = ID), color = "grey", alpha = 0.3) + 
+  geom_line(aes(group = Target_obj), color = "grey", alpha = 0.3) + 
   geom_point(data = data_trial_agg, size = 5) +
   geom_line(data = data_trial_agg, aes(group = 1), color = "black") +
-  facet_wrap(time ~ response) +
+  facet_wrap(response ~ Condition, ncol = 2) +
   #geom_line(aes(lty = time ,group = interaction(response, Condition, time))) +
   scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(-0.2,1.1)) +
   theme_classic() 
