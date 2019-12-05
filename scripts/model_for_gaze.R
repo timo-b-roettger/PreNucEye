@@ -66,7 +66,7 @@ priors_gaze <- c(
 xmdl_subj <- brm(subj_preference ~ Condition * window * eyetrial.c + 
               # specify maximal model for IDs (no correlation assumed)
               (1 + Condition * window * eyetrial.c | ID) + 
-              (1 + Condition * window * eyetrial.c | Target_obj),
+              (1 + Condition * window | Target_obj),
               family = "bernoulli", 
             inits = 0, 
             chains = 4,
@@ -79,7 +79,7 @@ xmdl_subj <- brm(subj_preference ~ Condition * window * eyetrial.c +
 xmdl_obj <- brm(obj_preference ~ Condition * window * eyetrial.c + 
                 # specify maximal model for IDs (no correlation assumed)
                   (1 + Condition * window * eyetrial.c | ID) + 
-                  (1 + Condition * window * eyetrial.c | Target_obj),
+                  (1 + Condition * window | Target_obj),
                 family = "bernoulli", 
                 inits = 0, 
                 chains = 4,
