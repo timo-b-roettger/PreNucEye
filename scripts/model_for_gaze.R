@@ -71,7 +71,7 @@ xmdl_subj <- brm(subj_preference ~ Condition * window * eyetrial.c +
                  family = "bernoulli", 
                  inits = 0, 
                  chains = 4,
-                 iter = 2000,
+                 iter = 4000,
                  cores = 4,
                  control = list(adapt_delta = 0.99),
                  data = data)
