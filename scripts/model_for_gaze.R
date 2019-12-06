@@ -62,24 +62,26 @@ priors_gaze <- c(
   prior(lkj(2), class = cor)
 )
 
+
 # model subject preference
 xmdl_subj <- brm(subj_preference ~ Condition * window * eyetrial.c + 
-              # specify maximal model for IDs 
-              (1 + Condition * window * eyetrial.c | ID) + 
-              (1 + Condition * window | Target_obj),
-              family = "bernoulli", 
-            inits = 0, 
-            chains = 4,
-            iter = 4000,
-            cores = 4,
-            control = list(adapt_delta = 0.99),
-            data = data)
+                   # specify maximal model for IDs 
+                   (1 + Condition * window * eyetrial.c | ID) + 
+                   (1 + Condition * window * eyetrial.c | Target_obj),
+                 family = "bernoulli", 
+                 inits = 0, 
+                 chains = 4,
+                 iter = 2000,
+                 cores = 4,
+                 control = list(adapt_delta = 0.99),
+                 data = data)
+
 
 # model object preference
 xmdl_obj <- brm(obj_preference ~ Condition * window * eyetrial.c + 
                 # specify maximal model for IDs
                   (1 + Condition * window * eyetrial.c | ID) + 
-                  (1 + Condition * window | Target_obj),
+                  (1 + Condition * window * eyetrial.c | Target_obj),
                 family = "bernoulli", 
                 inits = 0, 
                 chains = 4,
@@ -95,6 +97,7 @@ setwd("../models/")
 save(xmdl_subj, 
      xmdl_obj, 
      file = "Bayesian_models.RData")
+
 
 ##########################
 ### Extract posteriors ###
@@ -484,7 +487,6 @@ ggplot(posteriors_prob[posteriors_prob$type == "estimate",], aes(x = window, y =
         axis.title = element_text(size = 16, face = "bold"),
         plot.title = element_text(size = 16, face = "bold"),
         plot.margin = unit(c(1,1,1,1),"cm"))
-
 
 
 
