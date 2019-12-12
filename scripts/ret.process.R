@@ -426,7 +426,7 @@ df <- data.roi.long %>%
   dplyr::select(ID, eyetrial, window, Condition, sum,
          Target_obj, Target_subj,
          Target_prop, SubjComp_prop, ObjComp_prop, Distr_prop,
-         GivenSubj_prop, GivenObj_prop,
+         GivenSubj_prop, GivenObj_prop, surveyExclude,
          excluded_IDs, excludeLargeError, excludeTriggerError, excludeRefError, lgerror) %>% 
   # delete all redundant rows
   distinct()

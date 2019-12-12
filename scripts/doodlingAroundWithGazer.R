@@ -17,7 +17,6 @@
 
 ## Load packages
 library(rstudioapi)
-library(ggplot2)
 library(tidyverse)
 library(readr)
 

@@ -40,7 +40,8 @@ data <- data %>%
   filter(excludeTriggerError == 0,
          excludeRefError == 0, 
          excludeLargeError == 0,
-         lgerror == 0) %>% 
+         lgerror == 0,
+         surveyExclude == 0) %>% 
   mutate(window = factor(window, levels = c("early", "prenuclear", "nuclear", "adverb"))) %>% 
   # generate binary preference score
   mutate(subj_preference = ifelse(((Target_prop + ObjComp_prop) / 2) > ((SubjComp_prop + Distr_prop) / 2), 1, 0),
@@ -457,7 +458,7 @@ save(posteriors_1, posteriors_2,
 
 
 # plot quick and dirty - sanity check
-ggplot(posteriors_prob[posteriors_prob$type == "estimate",], aes(x = window, y = mean)) +
+ggplot(posteriors_prob[posteriors_prob$type == "estimate" & posteriors_prob$time == "middle",], aes(x = window, y = mean)) +
   geom_segment(x = -Inf, y = 0.5, xend = Inf, yend = 0.5,
                lty = "dashed", size = 1, colour = "black") +
   geom_errorbar(aes(ymin = lci, ymax = uci), width = 0.2) +

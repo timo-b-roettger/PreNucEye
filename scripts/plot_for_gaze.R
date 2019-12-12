@@ -52,7 +52,8 @@ data <- data %>%
   filter(excludeTriggerError == 0,
          excludeRefError == 0, 
          excludeLargeError == 0,
-         lgerror == 0) %>% 
+         lgerror == 0,
+         surveyExclude == 0) %>% 
   mutate(window = factor(window, levels = c("early", "1st NP", "2nd NP", "adverb"))) %>% 
   # generate binary preference score
   mutate(subj_preference = ifelse(((Target_prop + ObjComp_prop) / 2) > ((SubjComp_prop + Distr_prop) / 2), 1, 0),
