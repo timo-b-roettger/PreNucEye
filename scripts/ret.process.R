@@ -186,7 +186,7 @@ for (participant in participants){
 } #/participant
 
 ## In rare cases, the eyetracker will not write interpretable fixation times. Remove them.
-data = data[-which(is.na(data$fixDur)),]
+#data = data[-which(is.na(data$fixDur)),] #not the case (12/12/19 DT)
 
 ## Separate fixation duration by acoustic landmark into windows
 # Loop all gazes, grouping by participant and trial
