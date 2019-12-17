@@ -1,0 +1,105 @@
+---
+title: "Results"
+author: "timo roettger"
+date: "12/17/2019"
+output: pdf_document
+---
+
+```{r setup, echo = FALSE, warning = FALSE, message = FALSE}
+
+library(knitr)
+library(tidyverse)
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+```{r prepareVariables, echo = FALSE}
+
+load("../models/posteriors.RData")
+posteriors_prob_1st <- posteriors_prob %>% filter(preference == "Target 1st NP") %>% select(name, mean, lci, uci)
+posteriors_prob_2nd <- posteriors_prob %>% filter(preference == "Target 2nd NP") %>% select(name, mean, lci, uci)
+
+posteriors_logit_diff_1st <- posteriors_logit %>% filter(preference == "Target 1st NP") %>% select(name, mean, lci, uci)
+posteriors_logit_diff_2nd <- posteriors_logit %>% filter(preference == "Target 2nd NP") %>% select(name, mean, lci, uci)
+
+CG_early_mean <- posteriors_prob_1st[posteriors_prob_1st$name == "CG_early",]$mean
+CG_early_CrI <- paste0("[", posteriors_prob_1st[posteriors_prob_1st$name == "CG_early",]$lci, ",", posteriors_prob_1st[posteriors_prob_1st$name == "CG_early",]$uci, "]")
+
+CG_1stNP_mean <- posteriors_prob_1st[posteriors_prob_1st$name == "CG_prenuc",]$mean
+CG_1stNP_CrI <- paste0("[", posteriors_prob_1st[posteriors_prob_1st$name == "CG_prenuc",]$lci, ",", posteriors_prob_1st[posteriors_prob_1st$name == "CG_prenuc",]$uci, "]")
+
+CG_2ndNP_mean <- posteriors_prob_1st[posteriors_prob_1st$name == "CG_nuclear",]$mean
+CG_2ndNP_CrI <- paste0("[", posteriors_prob_1st[posteriors_prob_1st$name == "CG_nuclear",]$lci, ",", posteriors_prob_1st[posteriors_prob_1st$name == "CG_nuclear",]$uci, "]")
+
+
+CG_diff_early_1stNP_mean <- posteriors_logit_diff_1st[posteriors_logit_diff_1st$name == "diff_CG_early_prenuc",]$mean
+CG_diff_early_1stNP_CrI <- paste0("[", posteriors_logit_diff_1st[posteriors_logit_diff_1st$name == "diff_CG_early_prenuc",]$lci, ",", posteriors_logit_diff_1st[posteriors_logit_diff_1st$name == "diff_CG_early_prenuc",]$uci, "]")
+
+CG_diff_1stNP_2ndNP_mean <- posteriors_logit_diff_1st[posteriors_logit_diff_1st$name == "diff_CG_prenuc_nuc",]$mean
+CG_diff_1stNP_2ndNP_CrI <- paste0("[", posteriors_logit_diff_1st[posteriors_logit_diff_1st$name == "diff_CG_prenuc_nuc",]$lci, ",", posteriors_logit_diff_1st[posteriors_logit_diff_1st$name == "diff_CG_prenuc_nuc",]$uci, "]")
+
+
+GC_early_mean <- posteriors_prob_1st[posteriors_prob_1st$name == "GC_early",]$mean
+GC_early_CrI <- paste0("[", posteriors_prob_1st[posteriors_prob_1st$name == "GC_early",]$lci, ",", posteriors_prob_1st[posteriors_prob_1st$name == "GC_early",]$uci, "]")
+
+GC_1stNP_mean <- posteriors_prob_1st[posteriors_prob_1st$name == "GC_prenuc",]$mean
+GC_1stNP_CrI <- paste0("[", posteriors_prob_1st[posteriors_prob_1st$name == "GC_prenuc",]$lci, ",", posteriors_prob_1st[posteriors_prob_1st$name == "GC_prenuc",]$uci, "]")
+
+GC_diff_early_1stNP_mean <- posteriors_logit_diff_1st[posteriors_logit_diff_1st$name == "diff_GC_early_prenuc",]$mean
+GC_diff_early_1stNP_CrI <- paste0("[", posteriors_logit_diff_1st[posteriors_logit_diff_1st$name == "diff_GC_early_prenuc",]$lci, ",", posteriors_logit_diff_1st[posteriors_logit_diff_1st$name == "diff_GC_early_prenuc",]$uci, "]")
+
+
+GG_early_mean <- posteriors_prob_1st[posteriors_prob_1st$name == "GG_early",]$mean
+GG_early_CrI <- paste0("[", posteriors_prob_1st[posteriors_prob_1st$name == "GG_early",]$lci, ",", posteriors_prob_1st[posteriors_prob_1st$name == "GG_early",]$uci, "]")
+
+GG_1stNP_mean <- posteriors_prob_1st[posteriors_prob_1st$name == "GG_prenuc",]$mean
+GG_1stNP_CrI <- paste0("[", posteriors_prob_1st[posteriors_prob_1st$name == "GG_prenuc",]$lci, ",", posteriors_prob_1st[posteriors_prob_1st$name == "GG_prenuc",]$uci, "]")
+
+GG_diff_early_1stNP_mean <- posteriors_logit_diff_1st[posteriors_logit_diff_1st$name == "diff_GG_early_prenuc",]$mean
+GG_diff_early_1stNP_CrI <- paste0("[", posteriors_logit_diff_1st[posteriors_logit_diff_1st$name == "diff_GG_early_prenuc",]$lci, ",", posteriors_logit_diff_1st[posteriors_logit_diff_1st$name == "diff_GG_early_prenuc",]$uci, "]")
+
+# second NP looks
+
+GC_early_mean2 <- posteriors_prob_2nd[posteriors_prob_2nd$name == "GC_early",]$mean
+GC_early_CrI2 <- paste0("[", posteriors_prob_2nd[posteriors_prob_2nd$name == "GC_early",]$lci, ",", posteriors_prob_2nd[posteriors_prob_2nd$name == "GC_early",]$uci, "]")
+
+GC_1stNP_mean2 <- posteriors_prob_2nd[posteriors_prob_2nd$name == "GC_prenuc",]$mean
+GC_1stNP_CrI2 <- paste0("[", posteriors_prob_2nd[posteriors_prob_2nd$name == "GC_prenuc",]$lci, ",", posteriors_prob_2nd[posteriors_prob_2nd$name == "GC_prenuc",]$uci, "]")
+
+GC_diff_early_1stNP_mean2 <- posteriors_logit_diff_2nd[posteriors_logit_diff_2nd$name == "diff_GC_early_prenuc",]$mean
+GC_diff_early_1stNP_CrI2 <- paste0("[", posteriors_logit_diff_2nd[posteriors_logit_diff_2nd$name == "diff_GC_early_prenuc",]$lci, ",", posteriors_logit_diff_2nd[posteriors_logit_diff_2nd$name == "diff_GC_early_prenuc",]$uci, "]")
+
+
+
+```
+
+## Results
+
+Looking at the fixation patterns across time (see Fig. 1), it becomes clear that listeners are biased to look at the picture that was the target of the trigger sentence, namely the picture that corresponds to the already mentioned animal and object (i.e. the red line (given NP1 - given NP2) starts higher than expected by chance and the light blue line (contrastive NP1 - contrastive NP2) starts lower). This initial bias is, however, quickly modulated by the incoming speech information. 
+
+```{r TimePlot, echo = FALSE, fig.cap = "Mean fixation proprotions across conditions (panels), picture types (color) and time (x-axis). Error margin corresponds to the standard error calculatate by SD / (square root (number of participants). Dashed lines correspond to the acoustic landmarks plus 200 ms lag for the initiation of the saccade."}
+
+include_graphics("../plots/TimePlot.pdf")
+
+```
+
+Fig. 2 displays the aggregated fixation preferences for the animals (= 1st NP) and the objects (= 2nd NP) across three relevant time windows: the **early** window prior to the 1st NP and its prosodic profile, the window spanning the onset of the **1st NP** (= "thingy") up to the onset of the 2nd NP, and the window spanning the onset of the **2nd NP** up to the onset of the adverb. 
+
+### Looks to the 1st NP
+Looking at the fixation preferences to NP1 (top row), there is compelling evidence that listeners use information of the prenuclear region in the condtion with a pitch accent on thingy and no pitch accent on the 2nd NP (left panel). There is an increase in looks to the target referent from the early window ($\hat{\beta} = `r toString (CG_early_mean)`$) to the NP1 window ($\hat{\beta} = `r toString (CG_1stNP_mean)`$). The difference of the posterior distributions is compelling ($\hat{\beta}~log odds~ = `r toString (CG_diff_early_1stNP_mean)`$, $95\%$ CrI $= `r toString (CG_diff_early_1stNP_CrI)`$). Thus, hearing a prominent pitch accent on NP1 leads to more looks to a referent that contrasts with the previously mentioned referent. In other words, the pitch accent is immediately locally interpreted as indicating contrastiveness.
+
+Not surpisingly, the opposite pattern can also be numerically observed for intonation contours with two pitch accents (right panel). Listeners are more likely to look away from the target referent when hearing a pitch accent on thingy: There is a *de*crease in looks to the target referent from the early window ($\hat{\beta} = `r toString (GG_early_mean)`$), to the NP1 window ($\hat{\beta} = `r toString (GG_1stNP_mean)`$). However, in this condition there is substantially more variability, leading to less certain estimates of this difference ($\hat{\beta}~log odds~ = `r toString (GG_diff_early_1stNP_mean)`$, $95\%$ CrI $= `r toString (GG_diff_early_1stNP_CrI)`$). 
+Within these two time windows, there was no compelling change in fixation preferences for the 2nd NP accent pattern (middle panel) ($\hat{\beta}~log odds~ = `r toString (GC_diff_early_1stNP_mean)`$, $95\%$ CrI $= `r toString (GC_diff_early_1stNP_CrI)`$), indicating that the absence of a pitch accent on NP1 is not used (as much) to infer the givenness of the corresponding referent.
+
+Whether listeners make inference about the discourse status of NP1 based on the prosodic information on NP2 (backwards inference) can be seen in the comparison between these two windows. When having heard an early pitch accent on NP1, listeners use the absence of a pitch accent on NP2 (left panel) as additional evidence for the givenness status of NP1, indicated by a compelling increase in looks to the target referent ($\hat{\beta}~log odds~ = `r toString (CG_diff_1stNP_2ndNP_mean)`$, $95\%$ CrI $= `r toString (CG_diff_1stNP_2ndNP_CrI)`$). The evidence for the other two conditions remains inconclusive, indicating only small differences as well as great remaining uncertainty. 
+
+### Looks to the 2nd NP
+Beyond the local interpretation of prenuclear prosodic information (i.e. interpretation regarding the discourse status of NP1), it is informative to look at whether listeners use the early prosodic information to infer the discourse status of the upcoming NP2 (bottom row). Only the 2nd NP accent intonation contour (middle panel) shows a increase in looks. The early window ($\hat{\beta} = `r toString (GC_early_mean2)`$) exhibit less looks to thet target NP2 than the NP1 window ($\hat{\beta} = `r toString (GC_1stNP_mean2)`$). The model estimates a compelling difference between these windows ($\hat{\beta}~log odds~ = `r toString (GC_diff_early_1stNP_mean2)`$, $95\%$ CrI $= `r toString (GC_diff_early_1stNP_CrI2)`$). In other words, when listeners do not hear an early pitch accent, they anticipat a contrastive NP2. While, within the microcosm of the experiment, an early pitch accent was highly predictable of the givenness of NP2, listeners did not seem to use that information to predict NP2's discourse status. This is important as this indicates that listeners are not strictly rational comprehenders who greedily use whatever evidence they encounter. We come back to this interpretation in the general discussion. 
+
+
+```{r ResultsPlot, echo = FALSE, fig.cap="Aggregated fixation preferences across conditions (panels), time windows (x-axis) and referent type (color). Solid points and whiskers correspond to posterior mean and 95% CrI based on the models described above. Semitransparent points (and corresponding density) correspond to listener averages."}
+
+
+include_graphics("../plots/Fix_agg_simple.pdf")
+
+```

@@ -39,14 +39,17 @@ data <- read_csv("ret_processed_stage_1.csv")
 
 # change data structure to the one needed for the gazeR
 data <- data %>% 
+  na.omit(fixDur) %>% 
   rename(Subject = ID ,
          CURRENT_FIX_DURATION = "fixDur",
          CURRENT_FIX_START = "sttime",
          CURRENT_FIX_END = "entime")
 
-# bin into 50ms bins (takes 10 seconds)
+# bin into 50ms bins (takes 10 seconds on my machine)
 temp = binify_fixations(data, binSize = 50, keepCols = c("Subject", "Condition", "Target_obj", "eyetrial", "roiLoc", "lgerror",
-                                                         "Target_pos", "Comp_obj_pos", "Comp_subj_pos", "Distractor_pos"), 
+                                                         "Target_pos", "Comp_obj_pos", "Comp_subj_pos", "Distractor_pos", 
+                                                         "First_pic", "Distractor_pic", "Comp_obj_pic", "Comp_subj_pic",
+                                                         "response_mt_maintrack_2nd_02", "response_mt_maintrack_1st_02"), 
                         maxTime = NULL)
 
 
@@ -221,7 +224,8 @@ data <- data %>%
   filter(excludeTriggerError == 0,
          excludeRefError == 0, 
          excludeLargeError == 0,
-         lgerror == 0)
+         lgerror == 0, 
+         surveyExclude == 0)
 
 
 # add landmarks
@@ -268,16 +272,16 @@ plot_agg <- data %>%
                                 `2nd NP accent` = "GC",
                                 `Both NPs have accents` =  "GG")) %>% 
   group_by(role, Condition, timeC) %>% 
-  summarise(prop = mean(proportion, na.rm = TRUE))
+  summarise(prop = mean(proportion, na.rm = TRUE),
+            prop.sd = sd(proportion, na.rm = TRUE) / sqrt(length(unique(Subject))) )
 
 
 
 # specify colors
-TargetCol = "#d01c8b"
-ObjCompCol = "#4dac26"
-SubjCompCol = "#b8e186"
-DistrCol = "#636363"
-
+TargetCol = "#d7191c"
+ObjCompCol = "#fdae61"
+SubjCompCol = "#abd9e9"
+DistrCol = "#2c7bb6"
 
 
 ############
@@ -285,122 +289,58 @@ DistrCol = "#636363"
 ############
 
 
+# store information for annotation
+xagg_text <- data.frame(Condition = unique(plot_agg$Condition))
+xagg_text$text_2 <- ifelse(xagg_text$Condition != "2nd NP accent", "THINGY", "thingy")
+xagg_text$text_3 <- ifelse(xagg_text$Condition != "1st NP accent", "BERRIES", "berries")
+xagg_text$text_4 <- ifelse(xagg_text$Condition == "Both NPs have accents", "again", "instead")
+
+lm <- full_join(lm, xagg_text)
+
 # plot all four categories
+TimePlot <- 
 ggplot(plot_agg[plot_agg$role %in% c("given 1st NP - given 2nd NP",
                                      "contrastive 1st NP - given 2nd NP",
                                      "given 1st NP - contrastive 2nd NP",
                                      "contrastive 1st NP - contrastive 2nd NP"),], 
        aes(x = timeC, y = prop, color = role)) +
-  geom_point(alpha = 0.3) +
-  geom_segment(data = lm, aes(x = prenuclear_onset, xend = prenuclear_onset,
-                              y = Inf, yend = -Inf), color = "grey", lty = "dashed") +
-  geom_segment(data = lm, aes(x = referent_onset, xend = referent_onset,
-                              y = Inf, yend = -Inf), color = "grey", lty = "dashed") +
-  geom_segment(data = lm, aes(x = adverb_onset, xend = adverb_onset,
-                              y = Inf, yend = -Inf), color = "grey", lty = "dashed") +
-  geom_path(size = 2) +
-  #geom_smooth() +
-  scale_colour_manual(values = c(SubjCompCol, DistrCol, ObjCompCol, TargetCol)) +
-  scale_fill_manual(values = c(SubjCompCol, DistrCol, ObjCompCol, TargetCol)) +
-  facet_grid(Condition ~ .) +
-  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(0,1)) +
-  scale_x_continuous(expand = c(0, 0), limits = c(0,3500)) +
-  labs(title = "Fixations across conditions and time",
-       #subtitle = "semitransparent lines represent averages of individual participants\n",
-       y = "Average fixations\n",
-       x = "\ntime in ms"
-  ) +
-  theme_classic() + 
-  theme(legend.position = "right",
-        legend.key.height = unit(2,"line"),
-        legend.title = element_blank(),
-        legend.text = element_text(size = 16),
-        legend.background = element_rect(fill = "transparent"),
-        strip.background = element_blank(),
-        strip.text = element_text(size = 16),
-        panel.spacing = unit(2, "lines"),
-        plot.background = element_rect(fill = "transparent", colour = NA),
-        panel.background = element_rect(fill = "transparent"),
-        axis.line = element_blank(),
-        axis.text = element_text(size = 16),
-        axis.title = element_text(size = 16, face = "bold"),
-        plot.title = element_text(size = 18, face = "bold"),
-        panel.border = element_rect(colour = "black", fill = NA), 
-        plot.margin = unit(c(1,1,1,1),"cm"))
-
-
-# plot 
-ggplot(plot_agg[plot_agg$role %in% c("Target","Object Competitor","Subject Competitor","Distractor"),], 
-       aes(x = timeC, y = prop, color = role)) +
-  geom_point(alpha = 0.3) +
-  geom_segment(data = lm, aes(x = prenuclear_onset, xend = prenuclear_onset,
-                              y = Inf, yend = -Inf), color = "grey", lty = "dashed") +
-  geom_segment(data = lm, aes(x = referent_onset, xend = referent_onset,
-                              y = Inf, yend = -Inf), color = "grey", lty = "dashed") +
-  geom_segment(data = lm, aes(x = adverb_onset, xend = adverb_onset,
-                              y = Inf, yend = -Inf), color = "grey", lty = "dashed") +
-  geom_path(size = 2) +
-  #geom_smooth() +
-  scale_colour_manual(values = c(SubjCompCol, DistrCol, ObjCompCol, TargetCol)) +
-  scale_fill_manual(values = c(SubjCompCol, DistrCol, ObjCompCol, TargetCol)) +
-  facet_grid(Condition ~ .) +
-  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(0,1)) +
-  scale_x_continuous(expand = c(0, 0), limits = c(0,3500)) +
-  labs(title = "Fixations across conditions and time",
-       #subtitle = "semitransparent lines represent averages of individual participants\n",
-       y = "Average fixations\n",
-       x = "\ntime in ms"
-  ) +
-  theme_classic() + 
-  theme(legend.position = "bottom",
-        legend.key.height = unit(2,"line"),
-        legend.title = element_blank(),
-        legend.text = element_text(size = 16),
-        legend.background = element_rect(fill = "transparent"),
-        strip.background = element_blank(),
-        strip.text = element_text(size = 16),
-        panel.spacing = unit(2, "lines"),
-        plot.background = element_rect(fill = "transparent", colour = NA),
-        panel.background = element_rect(fill = "transparent"),
-        axis.line = element_blank(),
-        axis.text = element_text(size = 16),
-        axis.title = element_text(size = 16, face = "bold"),
-        plot.title = element_text(size = 18, face = "bold"),
-        panel.border = element_rect(colour = "black", fill = NA), 
-        plot.margin = unit(c(1,1,1,1),"cm"))
-
-
-
-
-
-# plot only target categories
-ggplot(plot_agg[plot_agg$role %in% c("Given 1st NP",  "Given 2nd NP"),], 
-# ggplot(plot_agg[plot_agg$role %in% c("Target 1st NP", "Target 2nd NP", 
-#                                      "Competitor 1st NP", "Competitor 2nd NP"),], 
-       aes(x = timeC, y = prop, color = role)) +
-  geom_point(alpha = 0.3) +
-  geom_segment(data = lm, aes(x = prenuclear_onset, xend = prenuclear_onset,
-                              y = Inf, yend = -Inf), color = "lightgrey", lty = "dotted") +
-  geom_segment(data = lm, aes(x = referent_onset, xend = referent_onset,
-                              y = Inf, yend = -Inf), color = "lightgrey", lty = "dotted") +
-  geom_segment(data = lm, aes(x = adverb_onset, xend = adverb_onset,
-                              y = Inf, yend = -Inf), color = "lightgrey", lty = "dotted") +
+  geom_point(alpha = 1) +
+  geom_ribbon(aes(ymin = prop - prop.sd, ymax = prop + prop.sd, fill = role), color = NA, alpha = 0.2) +
   geom_segment(data = lm, aes(x = prenuclear_onset_s, xend = prenuclear_onset_s,
-                              y = Inf, yend = -Inf), color = "darkgrey", lty = "dashed") +
+                              y = Inf, yend = -Inf), color = "grey", lty = "dashed") +
   geom_segment(data = lm, aes(x = referent_onset_s, xend = referent_onset_s,
-                              y = Inf, yend = -Inf), color = "darkgrey", lty = "dashed") +
+                              y = Inf, yend = -Inf), color = "grey", lty = "dashed") +
   geom_segment(data = lm, aes(x = adverb_onset_s, xend = adverb_onset_s,
-                              y = Inf, yend = -Inf), color = "darkgrey", lty = "dashed") +
-  geom_path(size = 2) +
+                              y = Inf, yend = -Inf), color = "grey", lty = "dashed") +
+  # geom_segment(x = 0, xend = Inf, y = 0, yend = 0, color = "black") +
+  # geom_segment(x = 0, xend = Inf, y = 1, yend = 1, color = "black") +
+  geom_path(size = 1) +
+  geom_text(data = lm,
+            aes(x = prenuclear_onset_s/2), y = -0.18, label = "Now click", size  = 3, inherit.aes = FALSE, hjust = 0.5) +
+  geom_text(data = lm,
+            aes(x = prenuclear_onset_s/2), y = -0.30, label = "on the", size  = 3, inherit.aes = FALSE, hjust = 0.5) +
+  geom_text(data = lm,
+             aes( x = ((referent_onset_s - prenuclear_onset_s) / 2) + prenuclear_onset_s, label = text_2), 
+             y = -0.18, size = 3, inherit.aes = FALSE,  hjust = 0.5) + 
+  geom_text(data = lm,
+            aes(x = ((referent_onset_s - prenuclear_onset_s) / 2) + (prenuclear_onset_s)),
+            y = -0.3, size = 3,  label = "that dreams about the", inherit.aes = FALSE,  hjust = 0.5) +
+  geom_text(data = lm,
+            aes(x = ((adverb_onset_s - referent_onset_s) / 2) + (referent_onset_s), label = text_3),
+            y = -0.24, size = 3, inherit.aes = FALSE,  hjust = 0.5) +
+  geom_text(data = lm,
+            aes(x = adverb_onset_s + 50, label = text_4),
+            y = -0.24, size = 3, hjust = 0, inherit.aes = FALSE) +
   #geom_smooth() +
-  scale_colour_manual(values = c(ObjCompCol, TargetCol)) +
-  scale_fill_manual(values = c(ObjCompCol, TargetCol)) +
-  facet_grid(Condition ~ .) +
-  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(0,1)) +
+  scale_colour_manual(values = c(SubjCompCol, DistrCol, ObjCompCol, TargetCol)) +
+  scale_fill_manual(values = c(SubjCompCol, DistrCol, ObjCompCol, TargetCol)) +
+  facet_wrap(. ~ Condition, nrow = 2) +
+  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(-0.4,1)) +
   scale_x_continuous(expand = c(0, 0), limits = c(0,3500)) +
-  labs(title = "Fixations across conditions and time\n",
-       #subtitle = "semitransparent lines represent averages of individual participants\n",
-       y = "Average fixation proportion to the given referent\n",
+  labs(title = "Fixation proportions across time",
+       #subtitle = paste0("ribbons represent SD / ", expression(sqrt(x)), "\n"),
+       subtitle = " \n", 
+       y = "Average fixation proportion\n",
        x = "\ntime in ms"
   ) +
   theme_classic() + 
@@ -415,9 +355,21 @@ ggplot(plot_agg[plot_agg$role %in% c("Given 1st NP",  "Given 2nd NP"),],
         plot.background = element_rect(fill = "transparent", colour = NA),
         panel.background = element_rect(fill = "transparent"),
         axis.line = element_blank(),
+        axis.line.x = element_blank(),
         axis.text = element_text(size = 16),
         axis.title = element_text(size = 16, face = "bold"),
         plot.title = element_text(size = 18, face = "bold"),
-        panel.border = element_rect(colour = "black", fill = NA), 
+        #panel.border = element_rect(colour = "black", fill = NA), 
         plot.margin = unit(c(1,1,1,1),"cm"))
 
+
+# store plot 
+setwd("../plots/")
+ggsave(filename = "TimePlot.pdf",
+       plot = TimePlot,
+       device = "pdf",
+       width = 280, 
+       height = 250,
+       units = "mm",
+       #bg = "transparent",
+       dpi = 300)
