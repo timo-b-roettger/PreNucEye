@@ -238,9 +238,9 @@ lm <- data %>%
             referent_onset_s = mean(referent_onset_s),
             adverb_onset_s = mean(adverb_onset_s)) %>% 
   mutate(Condition = as.factor(Condition),
-         Condition = fct_recode(Condition, `1st NP accent` = "CG",
-                                `2nd NP accent` = "GC",
-                                `Both NPs have accents` =  "GG")) 
+         Condition = fct_recode(Condition, `NP1 accented` = "CG",
+                                `NP2 accented` = "GC",
+                                `Both NPs accented` =  "GG")) 
 
 # gather and rename category
 plot_agg <- data %>% 
@@ -261,16 +261,16 @@ plot_agg <- data %>%
                                `Competitor 2nd NP` = "comp_obj",
                                `Given 1st NP` = "given_subj",
                                `Given 2nd NP` = "given_obj",
-                                `given 1st NP - given 2nd NP` = "given_given",
-                                `contrastive 1st NP - given 2nd NP` = "contrastive_given",
-                                `given 1st NP - contrastive 2nd NP` = "given_contrastive",
-                                `contrastive 1st NP - contrastive 2nd NP` = "contrastive_contrastive",
+                                `both given` = "given_given",
+                                `new NP1, given NP2` = "contrastive_given",
+                                `given NP1, new NP2` = "given_contrastive",
+                                `both new` = "contrastive_contrastive",
                            
                            ),
          Condition = as.factor(Condition),
-         Condition = fct_recode(Condition, `1st NP accent` = "CG",
-                                `2nd NP accent` = "GC",
-                                `Both NPs have accents` =  "GG")) %>% 
+         Condition = fct_recode(Condition, `NP1 accented` = "CG",
+                                `NP2 accented` = "GC",
+                                `Both NPs accented` =  "GG")) %>% 
   group_by(role, Condition, timeC) %>% 
   summarise(prop = mean(proportion, na.rm = TRUE),
             prop.sd = sd(proportion, na.rm = TRUE) / sqrt(length(unique(Subject))) )
@@ -278,10 +278,11 @@ plot_agg <- data %>%
 
 
 # specify colors
-TargetCol = "#d7191c"
-ObjCompCol = "#fdae61"
-SubjCompCol = "#abd9e9"
-DistrCol = "#2c7bb6"
+TargetCol = "#1b9e77"
+ObjCompCol = "#d95f02"
+SubjCompCol = "#7570b3"
+DistrCol = "#e7298a"
+
 
 
 ############
@@ -291,52 +292,74 @@ DistrCol = "#2c7bb6"
 
 # store information for annotation
 xagg_text <- data.frame(Condition = unique(plot_agg$Condition))
-xagg_text$text_2 <- ifelse(xagg_text$Condition != "2nd NP accent", "THINGY", "thingy")
-xagg_text$text_3 <- ifelse(xagg_text$Condition != "1st NP accent", "BERRIES", "berries")
-xagg_text$text_4 <- ifelse(xagg_text$Condition == "Both NPs have accents", "again", "instead")
+xagg_text$text_2 <- ifelse(xagg_text$Condition != "NP2 accented", "THINGY that", "thingy that")
+xagg_text$text_3 <- ifelse(xagg_text$Condition != "NP1 accented", "BERRIES", "berries")
+xagg_text$text_4 <- ifelse(xagg_text$Condition == "Both NPs accented", "again", "instead")
+
+xagg_text$thingy_duration <- ifelse(xagg_text$Condition == "NP2 accented", 325, 377)
 
 lm <- full_join(lm, xagg_text)
 
 # plot all four categories
 TimePlot <- 
-ggplot(plot_agg[plot_agg$role %in% c("given 1st NP - given 2nd NP",
-                                     "contrastive 1st NP - given 2nd NP",
-                                     "given 1st NP - contrastive 2nd NP",
-                                     "contrastive 1st NP - contrastive 2nd NP"),], 
+ggplot(plot_agg[plot_agg$role %in% c("both given",
+                                     "new NP1, given NP2",
+                                     "given NP1, new NP2",
+                                     "both new"),], 
        aes(x = timeC, y = prop, color = role)) +
+  geom_rect(data = lm,
+            aes(xmin = prenuclear_onset, xmax = prenuclear_onset + thingy_duration, ymin = -Inf, ymax = Inf), 
+            color = NA, fill = "grey", alpha = 0.3, inherit.aes = FALSE) +
   geom_point(alpha = 1) +
+  #geom_smooth(se=FALSE) +
   geom_ribbon(aes(ymin = prop - prop.sd, ymax = prop + prop.sd, fill = role), color = NA, alpha = 0.2) +
-  geom_segment(data = lm, aes(x = prenuclear_onset_s, xend = prenuclear_onset_s,
+  geom_segment(data = lm, aes(x = prenuclear_onset, xend = prenuclear_onset,
                               y = Inf, yend = -Inf), color = "grey", lty = "dashed") +
-  geom_segment(data = lm, aes(x = referent_onset_s, xend = referent_onset_s,
+  geom_segment(data = lm, aes(x = referent_onset, xend = referent_onset,
                               y = Inf, yend = -Inf), color = "grey", lty = "dashed") +
-  geom_segment(data = lm, aes(x = adverb_onset_s, xend = adverb_onset_s,
+  geom_segment(data = lm, aes(x = adverb_onset, xend = adverb_onset,
                               y = Inf, yend = -Inf), color = "grey", lty = "dashed") +
   # geom_segment(x = 0, xend = Inf, y = 0, yend = 0, color = "black") +
   # geom_segment(x = 0, xend = Inf, y = 1, yend = 1, color = "black") +
   geom_path(size = 1) +
-  geom_text(data = lm,
-            aes(x = prenuclear_onset_s/2), y = -0.18, label = "Now click", size  = 3, inherit.aes = FALSE, hjust = 0.5) +
-  geom_text(data = lm,
-            aes(x = prenuclear_onset_s/2), y = -0.30, label = "on the", size  = 3, inherit.aes = FALSE, hjust = 0.5) +
-  geom_text(data = lm,
-             aes( x = ((referent_onset_s - prenuclear_onset_s) / 2) + prenuclear_onset_s, label = text_2), 
-             y = -0.18, size = 3, inherit.aes = FALSE,  hjust = 0.5) + 
-  geom_text(data = lm,
-            aes(x = ((referent_onset_s - prenuclear_onset_s) / 2) + (prenuclear_onset_s)),
-            y = -0.3, size = 3,  label = "that dreams about the", inherit.aes = FALSE,  hjust = 0.5) +
-  geom_text(data = lm,
-            aes(x = ((adverb_onset_s - referent_onset_s) / 2) + (referent_onset_s), label = text_3),
-            y = -0.24, size = 3, inherit.aes = FALSE,  hjust = 0.5) +
-  geom_text(data = lm,
-            aes(x = adverb_onset_s + 50, label = text_4),
-            y = -0.24, size = 3, hjust = 0, inherit.aes = FALSE) +
+  # geom_text(data = lm,
+  #           aes(x = prenuclear_onset/2), y = -0.2, label = "Now click", size  = 3, inherit.aes = FALSE, hjust = 0.5) +
+  # geom_text(data = lm,
+  #           aes(x = prenuclear_onset/2), y = -0.25, label = "on the", size  = 3, inherit.aes = FALSE, hjust = 0.5) +
+  # geom_text(data = lm,
+  #            aes( x = ((referent_onset - prenuclear_onset) / 2) + prenuclear_onset, label = text_2), 
+  #            y = -0.2, size = 3, inherit.aes = FALSE,  hjust = 0.5) + 
+  # geom_text(data = lm,
+  #           aes(x = ((referent_onset - prenuclear_onset) / 2) + (prenuclear_onset)),
+  #           y = -0.25, size = 3,  label = "dreams about the", inherit.aes = FALSE,  hjust = 0.5) +
+  # geom_text(data = lm,
+  #           aes(x = ((adverb_onset - referent_onset) / 2) + (referent_onset), label = text_3),
+  #           y = -0.225, size = 3, inherit.aes = FALSE,  hjust = 0.5) +
+  # geom_text(data = lm,
+  #           aes(x = adverb_onset + 50, label = text_4),
+  #           y = -0.225, size = 3, hjust = 0, inherit.aes = FALSE) +
+  geom_point(data = lm , pch = 21, size = 6, color = "black", fill = NA, 
+             aes(x = prenuclear_onset/2), y = 0.9) +
+  geom_point(data = lm , pch = 21, size = 6, color = "black", fill = NA, 
+             aes(x =((referent_onset - prenuclear_onset) / 2) + prenuclear_onset), y = 0.9) +
+  geom_point(data = lm , pch = 21, size = 6, color = "black", fill = NA, 
+             aes(x = ((adverb_onset - referent_onset) / 2) + (referent_onset)), y = 0.9) +
+  geom_point(data = lm , pch = 21, size = 6, color = "black", fill = NA, 
+             aes(x = adverb_onset + 300), y = 0.9) +
+  geom_text(data = lm , size = 4, color = "black",
+             aes(x = prenuclear_onset/2), label = "1", y = 0.9) +
+  geom_text(data = lm , size = 4, color = "black",
+             aes(x =((referent_onset - prenuclear_onset) / 2) + prenuclear_onset), label = "2", y = 0.9) +
+  geom_text(data = lm , size = 4, color = "black",
+             aes(x = ((adverb_onset - referent_onset) / 2) + (referent_onset)), label = "3", y = 0.9) +
+  geom_text(data = lm , size = 4, color = "black",
+             aes(x = adverb_onset + 300), label = "4", y = 0.9) +
   #geom_smooth() +
   scale_colour_manual(values = c(SubjCompCol, DistrCol, ObjCompCol, TargetCol)) +
   scale_fill_manual(values = c(SubjCompCol, DistrCol, ObjCompCol, TargetCol)) +
-  facet_wrap(. ~ Condition, nrow = 2) +
-  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(-0.4,1)) +
-  scale_x_continuous(expand = c(0, 0), limits = c(0,3500)) +
+  facet_wrap(. ~ Condition, nrow = 3) +
+  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(-0.05,1)) +
+  scale_x_continuous(limits = c(0,3500)) +
   labs(title = "Fixation proportions across time",
        #subtitle = paste0("ribbons represent SD / ", expression(sqrt(x)), "\n"),
        subtitle = " \n", 
@@ -359,7 +382,7 @@ ggplot(plot_agg[plot_agg$role %in% c("given 1st NP - given 2nd NP",
         axis.text = element_text(size = 16),
         axis.title = element_text(size = 16, face = "bold"),
         plot.title = element_text(size = 18, face = "bold"),
-        #panel.border = element_rect(colour = "black", fill = NA), 
+        panel.border = element_rect(colour = "black", fill = NA), 
         plot.margin = unit(c(1,1,1,1),"cm"))
 
 
@@ -368,8 +391,10 @@ setwd("../plots/")
 ggsave(filename = "TimePlot.pdf",
        plot = TimePlot,
        device = "pdf",
-       width = 280, 
-       height = 250,
+       width = 220, 
+       height = 350,
+       #width = 393.75, 
+       #height = 135,
        units = "mm",
        #bg = "transparent",
        dpi = 300)

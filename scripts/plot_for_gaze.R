@@ -38,8 +38,7 @@ setwd("../data/")
 landmarks <- read_csv("acoustic_landmarks.csv")
 
 # Join the landmarks and data
-data <- full_join(data, landmarks) %>% 
-  filter(!is.na(window))
+data <- full_join(data, landmarks)
 
 # rename levels 
 data$window <- as.factor(data$window)
@@ -47,7 +46,7 @@ levels(data$window) <- c("adverb", "early", "2nd NP", "1st NP")
 
 # exclusion
 data <- data %>% 
-  filter(!is.na(window)) %>% 
+  #filter(!is.na(window)) %>% 
   # exclusion
   filter(excludeTriggerError == 0,
          excludeRefError == 0, 
@@ -77,14 +76,9 @@ data <- data %>%
                                `Target 1st NP` = "subj_preference",
                                `Target 2nd NP` = "obj_preference"),
          Condition = as.factor(Condition),
-         Condition = fct_recode(Condition, `1st NP accent` = "CG",
-                                `2nd NP accent` = "GC",
-                                `Both NPs have accents` =  "GG"),
-         # bin eyetrials into four categories
-         trial_bin = ifelse(eyetrial < 41, 1,
-                     ifelse(eyetrial >= 41 & eyetrial < 65, 2, 
-                     ifelse(eyetrial >= 65 & eyetrial < 89, 3,
-                     ifelse(eyetrial >= 89, 4, "error"))))
+         Condition = fct_recode(Condition, `NP1 accented` = "CG",
+                                `NP2 accented` = "GC",
+                                `Both NPs accented` =  "GG")
          )
          
 #################
@@ -108,22 +102,6 @@ xagg_subj <- data %>%
 ))) %>% 
   select(-window_dummy1, -window_dummy2, -window_dummy3, -window_dummy4)
 
-# aggregate proportions (per target tiem)
-xagg_item <- data %>% 
-  group_by(Condition, window, Target_obj, response) %>% 
-  summarise(prop = mean(proportion, na.rm = T),
-            prenuc_onset = mean(prenuclear_onset, na.rm = T),
-            ref_onset = mean(referent_onset, na.rm = T),
-            adverb_onset = mean(adverb_onset, na.rm = T)) %>% 
-  mutate(window_dummy1 = prenuc_onset / 2,
-         window_dummy2 = ((ref_onset - prenuc_onset)/2) + prenuc_onset + 200,
-         window_dummy3 = ((adverb_onset - ref_onset)/2) + ref_onset + 200,
-         window_dummy4 = adverb_onset + 500 + 200,
-         window_dummy = ifelse(window == "early", window_dummy1,
-                               ifelse(window == "1st NP", window_dummy2,
-                                      ifelse(window == "2nd NP", window_dummy3, window_dummy4)))) %>% 
-  select(-window_dummy1, -window_dummy2, -window_dummy3, -window_dummy4)
-
 
 # aggregate proportions (overall)
 xagg <- xagg_subj %>% 
@@ -134,30 +112,16 @@ xagg <- xagg_subj %>%
             adverb_onset = mean(adverb_onset, na.rm = T),
             window_dummy = mean(window_dummy, na.rm = T))
 
-# aggregate proportions (per subject and trial_bin)
-xagg_subj_trialBin <- data %>% 
-  group_by(Condition, window, ID, response, trial_bin) %>% 
-  summarise(prop = mean(proportion, na.rm = T))
-
-# aggregate proportions (trial_bin)
-xagg_trialBin <- xagg_subj_trialBin %>% 
-  group_by(Condition, window, response, trial_bin) %>% 
-  summarise(prop = mean(prop, na.rm = T))
-
-# aggregate over trials
-xagg_trials <- data %>% 
-  group_by(Condition, window, response, eyetrial) %>% 
-  summarise(prop = mean(proportion, na.rm = T))
 
 ############
 ### Plot ###
 ############
 
 # specify colors
-TargetCol = "#d01c8b"
-ObjCompCol = "#4dac26"
-SubjCompCol = "#b8e186"
-DistrCol = "#636363"
+TargetCol = "#1b9e77"
+ObjCompCol = "#d95f02"
+SubjCompCol = "#7570b3"
+DistrCol = "#e7298a"
 
 # load posteriors
 setwd("../models/")
@@ -167,9 +131,9 @@ load("posteriors.RData")
 
 # store information for annotation
 xagg_text <- data.frame(Condition = unique(xagg$Condition))
-xagg_text$text_2 <- ifelse(xagg_text$Condition != "2nd NP accent", "THINGY", "thingy")
-xagg_text$text_3 <- ifelse(xagg_text$Condition != "1st NP accent", "BERRIES", "berries")
-xagg_text$text_4 <- ifelse(xagg_text$Condition == "Both NPs have accents", "again", "instead")
+xagg_text$text_2 <- ifelse(xagg_text$Condition != "NP2 accented", "THINGY", "thingy")
+xagg_text$text_3 <- ifelse(xagg_text$Condition != "NP1 accented", "BERRIES", "berries")
+xagg_text$text_4 <- ifelse(xagg_text$Condition == "Both NPs accented", "again", "instead")
 
 # store font face
 xagg_text <- xagg_text %>%   
@@ -180,8 +144,15 @@ xagg_text <- xagg_text %>%
 colnames(posteriors_prob) <- c("name", "lci", "uci", "proportion", "probability", "Condition", "window", "type", "time", "response")
 
 # merge dfs for plot
-plot_df <- full_join(posteriors_prob, xagg[xagg$response %in% c("Target 1st NP", "Target 2nd NP"),]) %>% 
-  full_join(xagg_text)
+plot_df <- posteriors_prob %>% 
+  mutate(Condition = fct_recode(Condition, `NP1 accented` = "1st NP accent",
+                                         `NP2 accented` = "2nd NP accent",
+                                         `Both NPs accented` =  "Both NPs have accents")) %>% 
+  full_join(xagg[xagg$response %in% c("Target 1st NP", "Target 2nd NP"),]) %>% 
+  full_join(xagg_text) 
+
+plot_df$Condition <- as.factor(plot_df$Condition)
+plot_df$Condition <- factor(plot_df$Condition, levels = c("NP1 accented", "NP2 accented", "Both NPs accented"))
 
 
 ## plot simple comparison between baseline and prenuclear window
@@ -191,19 +162,17 @@ ggplot(data = xagg_subj[xagg_subj$response %in%  c("Target 2nd NP", "Target 1st 
        aes(x = window, y = prop, color = response, fill = response)) +
   geom_segment(x = -Inf, xend = Inf, y = 0.5, yend = 0.5, color = "grey", lty = "dashed") +
   facet_grid(response ~ Condition) +
-  geom_violin(color = "white", fill = "grey", alpha = 0.2, trim = FALSE) +
-  geom_quasirandom(width = 0.2, alpha = 0.1, size = 2) +
-  # geom_line(aes(group = interaction(ID, response)),
-  #           alpha = 0.05, size = 1) +
-  geom_line(data = plot_df[plot_df$time == "middle" & plot_df$window %in% c("early", "1st NP", "2nd NP"),], 
+  #geom_violin(color = "white", fill = "grey", alpha = 0.2, trim = FALSE) +
+  geom_quasirandom(width = 0.2, alpha = 0.1, size = 3) +
+  geom_line(data = plot_df[plot_df$time == "middle" & plot_df$window %in% c("early", "1st NP", "2nd NP"),],
             aes(x = window, y = proportion, color = response, group = 1),
             size = 2) +
-  geom_errorbar(data = plot_df[plot_df$time == "middle" & plot_df$window %in% c("early", "1st NP", "2nd NP"),], 
-                aes(x = window, ymin = lci, ymax = uci), 
+  geom_errorbar(data = plot_df[plot_df$time == "middle" & plot_df$window %in% c("early", "1st NP", "2nd NP"),],
+                aes(x = window, ymin = lci, ymax = uci),
                 colour = "black", width = 0.1, inherit.aes = FALSE) +
-  geom_point(data = plot_df[plot_df$time == "middle" & plot_df$window %in% c("early", "1st NP", "2nd NP"),], 
+  geom_point(data = plot_df[plot_df$time == "middle" & plot_df$window %in% c("early", "1st NP", "2nd NP"),],
              aes(x = window, y = proportion, fill = response),
-             size = 3, pch = 21, stroke = 1, inherit.aes = FALSE, 
+             size = 3, pch = 21, stroke = 1, inherit.aes = FALSE,
              color = "black") +
   scale_colour_manual(values = c(ObjCompCol, TargetCol)) +
   scale_fill_manual(values = c(ObjCompCol, TargetCol)) +
