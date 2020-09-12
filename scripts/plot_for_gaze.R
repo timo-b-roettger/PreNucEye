@@ -154,6 +154,11 @@ plot_df <- posteriors_prob %>%
 plot_df$Condition <- as.factor(plot_df$Condition)
 plot_df$Condition <- factor(plot_df$Condition, levels = c("NP1 accented", "NP2 accented", "Both NPs accented"))
 
+# make df for geom_text
+annotation_df <- expand_grid(Condition = c("NP1 accented", "NP2 accented", "Both NPs accented"),
+                             response = c("Target 1st NP", "Target 2nd NP"))
+
+
 
 ## plot simple comparison between baseline and prenuclear window
 Fix_agg_simple <- 
@@ -174,6 +179,31 @@ ggplot(data = xagg_subj[xagg_subj$response %in%  c("Target 2nd NP", "Target 1st 
              aes(x = window, y = proportion, fill = response),
              size = 3, pch = 21, stroke = 1, inherit.aes = FALSE,
              color = "black") +
+  # draw circles
+  geom_point(data = annotation_df[annotation_df$response %in%  c("Target 1st NP") & 
+                                annotation_df$Condition %in% c("NP1 accented"),],
+             pch = 21, size = 8, color = "black", fill = NA, 
+             x = 1.5, y = 0.2) +
+  geom_point(data = annotation_df[annotation_df$response %in%  c("Target 1st NP") & 
+                                annotation_df$Condition %in% c("NP1 accented"),],
+             pch = 21, size = 8, color = "black", fill = NA, 
+             x = 2.5, y = 0.35) +
+  geom_point(data = annotation_df[annotation_df$response %in%  c("Target 2nd NP") & 
+                                    annotation_df$Condition %in% c("NP2 accented"),],
+             pch = 21, size = 8, color = "black", fill = NA, 
+             x = 1.5, y = 0.25) +
+  geom_text(data = annotation_df[annotation_df$response %in%  c("Target 1st NP") & 
+                                   annotation_df$Condition %in% c("NP1 accented"),],
+            size = 6, color = "black",
+            x = 1.5, y = 0.21, label = "a") +
+  geom_text(data = annotation_df[annotation_df$response %in%  c("Target 1st NP") & 
+                                   annotation_df$Condition %in% c("NP1 accented"),],
+            size = 6, color = "black",
+            x = 2.51, y = 0.352, label = "b") +
+  geom_text(data = annotation_df[annotation_df$response %in%  c("Target 2nd NP") & 
+                                   annotation_df$Condition %in% c("NP2 accented"),],
+            size = 6, color = "black",
+            x = 1.5, y = 0.26, label = "c") +
   scale_colour_manual(values = c(ObjCompCol, TargetCol)) +
   scale_fill_manual(values = c(ObjCompCol, TargetCol)) +
   scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(0,1)) +

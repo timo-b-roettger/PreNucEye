@@ -279,9 +279,11 @@ plot_agg <- data %>%
 
 # specify colors
 TargetCol = "#1b9e77"
-ObjCompCol = "#d95f02"
-SubjCompCol = "#7570b3"
+ObjCompCol = "#7570b3"
+SubjCompCol = "black"
 DistrCol = "#e7298a"
+
+"darkgrey"
 
 
 
