@@ -11,7 +11,7 @@
 #
 ##          This file plots the fixation proportion.
 #
-## Version: 9/19/2019
+## Version: 9/19/2020
 
 
 #############
@@ -21,7 +21,6 @@
 library(tidyverse)
 library(ggbeeswarm)
 library(rstudioapi)
-# library(ggpubr)
 library(see)
 
 ## Getting the path of your current open file
@@ -118,10 +117,9 @@ xagg <- xagg_subj %>%
 ############
 
 # specify colors
-TargetCol = "#1b9e77"
-ObjCompCol = "#d95f02"
-SubjCompCol = "#7570b3"
-DistrCol = "#e7298a"
+Col1 = "#008837"
+Col2 = "#7b3294"
+
 
 # load posteriors
 setwd("../models/")
@@ -168,7 +166,7 @@ ggplot(data = xagg_subj[xagg_subj$response %in%  c("Target 2nd NP", "Target 1st 
   geom_segment(x = -Inf, xend = Inf, y = 0.5, yend = 0.5, color = "grey", lty = "dashed") +
   facet_grid(response ~ Condition) +
   #geom_violin(color = "white", fill = "grey", alpha = 0.2, trim = FALSE) +
-  geom_quasirandom(width = 0.2, alpha = 0.1, size = 3) +
+  geom_quasirandom(width = 0.2, alpha = 0.3, size = 3) +
   geom_line(data = plot_df[plot_df$time == "middle" & plot_df$window %in% c("early", "1st NP", "2nd NP"),],
             aes(x = window, y = proportion, color = response, group = 1),
             size = 2) +
@@ -204,8 +202,8 @@ ggplot(data = xagg_subj[xagg_subj$response %in%  c("Target 2nd NP", "Target 1st 
                                    annotation_df$Condition %in% c("NP2 accented"),],
             size = 6, color = "black",
             x = 1.5, y = 0.26, label = "c") +
-  scale_colour_manual(values = c(ObjCompCol, TargetCol)) +
-  scale_fill_manual(values = c(ObjCompCol, TargetCol)) +
+  scale_colour_manual(values = c(Col2, "grey")) +
+  scale_fill_manual(values = c(Col2, "white")) +
   scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(0,1)) +
   labs(title = "Average fixation preference across conditions and windows",
        subtitle = "semitransparent dots represent averages of individual participants\n",

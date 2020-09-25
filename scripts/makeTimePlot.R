@@ -278,12 +278,10 @@ plot_agg <- data %>%
 
 
 # specify colors
-TargetCol = "#1b9e77"
-ObjCompCol = "#7570b3"
-SubjCompCol = "black"
-DistrCol = "#e7298a"
-
-"darkgrey"
+TargetCol = "#66c2a5"
+ObjCompCol = "#fc8d62"
+SubjCompCol = "#8da0cb"
+DistrCol = "black"
 
 
 
@@ -359,8 +357,8 @@ ggplot(plot_agg[plot_agg$role %in% c("both given",
   #geom_smooth() +
   scale_colour_manual(values = c(SubjCompCol, DistrCol, ObjCompCol, TargetCol)) +
   scale_fill_manual(values = c(SubjCompCol, DistrCol, ObjCompCol, TargetCol)) +
-  facet_wrap(. ~ Condition, nrow = 3) +
-  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(-0.05,1)) +
+  facet_wrap(. ~ Condition, nrow = 2) +
+  scale_y_continuous(expand = c(0, 0), breaks = (c(0, 0.25, 0.5, 0.75, 1)), limits = c(0,1)) +
   scale_x_continuous(limits = c(0,3500)) +
   labs(title = "Fixation proportions across time",
        #subtitle = paste0("ribbons represent SD / ", expression(sqrt(x)), "\n"),
@@ -369,7 +367,7 @@ ggplot(plot_agg[plot_agg$role %in% c("both given",
        x = "\ntime in ms"
   ) +
   theme_classic() + 
-  theme(legend.position = "bottom",
+  theme(legend.position = "none",
         legend.key.height = unit(2,"line"),
         legend.title = element_blank(),
         legend.text = element_text(size = 16),
@@ -379,22 +377,21 @@ ggplot(plot_agg[plot_agg$role %in% c("both given",
         panel.spacing = unit(2, "lines"),
         plot.background = element_rect(fill = "transparent", colour = NA),
         panel.background = element_rect(fill = "transparent"),
-        axis.line = element_blank(),
         axis.line.x = element_blank(),
         axis.text = element_text(size = 16),
         axis.title = element_text(size = 16, face = "bold"),
         plot.title = element_text(size = 18, face = "bold"),
-        panel.border = element_rect(colour = "black", fill = NA), 
+        #panel.border = element_rect(colour = "black", fill = NA), 
         plot.margin = unit(c(1,1,1,1),"cm"))
 
 
-# store plot 
+# store plot (will be edited later in graphic program)
 setwd("../plots/")
 ggsave(filename = "TimePlot.pdf",
        plot = TimePlot,
        device = "pdf",
        width = 220, 
-       height = 350,
+       height = 160,
        #width = 393.75, 
        #height = 135,
        units = "mm",
