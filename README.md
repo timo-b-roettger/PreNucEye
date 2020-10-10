@@ -1,4 +1,6 @@
-# PreNucEye
+# Welcome
+
+This repository contains the analytical pipeline for the paper: "Intonational processing is incremental and holistic" by Timo B. Roettger, Dan Turner, & Jennifer Cole. Additional Materials and a preprint can be found here: https://osf.io/2wecs/
 
 ## Contents
 
